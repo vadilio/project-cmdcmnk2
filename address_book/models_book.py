@@ -56,3 +56,25 @@ class Email(Field):
         if value is not None and (not isinstance(value, str) or not re.fullmatch(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}", value)):
             raise ValueError("Неправильний формат email.")
         self._value = value  # Дозволяємо None
+
+
+class Birthday(Field):
+    """Клас для зберігання дня народження. Має валідацію формату."""
+    @Field.value.setter
+    def value(self, value):
+        if value is None:
+            self._value = None
+            return
+        try:
+            # Очікуваний формат DD.MM.YYYY
+            datetime.strptime(value, "%d.%m.%Y")
+            self._value = value
+        except (ValueError, TypeError):
+            raise ValueError(
+                "Неправильний формат дня народження. Очікується DD.MM.YYYY.")
+
+
+class Address(Field):
+    """Клас для зберігання адреси."""
+    # Можна додати специфічну валідацію для адреси
+    pass
