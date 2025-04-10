@@ -2,33 +2,32 @@ PROJECT-CMDCMNK2/
 │
 ├── address_book/
 │   ├── __init__.py
-│   ├── Addressbook.py           # класс Addressbook
-│   ├── ab_functions.py          # Функціі классу Addressbook (Логика работы с контактами)
-|   ├── models_book.py           # Моделі классу Addressbook
+│   ├── Addressbook.py           # клас Addressbook
+│   ├── ab_functions.py          # Функції класу Addressbook (Логіка роботи з контактами)
+│   ├── models_book.py           # Моделі класу Addressbook
 │
 ├── notes/
 │   ├── __init__.py
-│   ├── Notes_manager.py         # класс Notes_manager  
-│   ├── notes_functions.py       # Функціі классу Notes_manager та Логика работы с нотатками
-|   ├── models_notes.py          # Моделі классу Notes_manager
+│   ├── Notes_manager.py         # клас Notes_manager  
+│   ├── notes_functions.py       # Функції класу Notes_manager та логіка роботи з нотатками
+│   ├── models_notes.py          # Моделі класу Notes_manager
 │
 ├── tests/
 │   ├── __init__.py
-│   ├── file_manager.py          # Управление файлами (сохранение/загрузка данных)
-│   ├── text_analyzer.py         # Интеллектуальный анализ текста
-│   └── date_utils.py            # Утилиты для работы с датами (дни рождения)
+│   ├── file_manager.py          # Керування файлами (збереження/завантаження даних)
+│   ├── text_analyzer.py         # Інтелектуальний аналіз тексту
+│   └── date_utils.py            # Утиліти для роботи з датами (дні народження)
 │
 ├── tui/
 │   ├── __init__.py
-│   ├── interface.py             # Класс тект-граф інтерфейс 
+│   ├── interface.py             # Клас текстово-графічного інтерфейсу
 │
 ├── utils/
 │   ├── __init__.py
-│   ├── config.py                # Конфигурац файл
+│   ├── config.py                # Конфігураційний файл
 │   ├── loadsave.py 
 │   ├── validators.py
 │
-├── main.py                      # Главный файл програми
-├── requirements.txt             # Зависимости
-└── README.md                    # Описание проекта
- 
+├── main.py                      # Головний файл програми
+├── requirements.txt             # Залежності
+└── README.md                    # Опис проєкту
