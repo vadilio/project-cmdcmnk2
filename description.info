@@ -1,0 +1,34 @@
+PROJECT-CMDCMNK2/
+│
+├── address_book/
+│   ├── __init__.py
+│   ├── Addressbook.py           # класс Addressbook
+│   ├── ab_functions.py          # Функціі классу Addressbook (Логика работы с контактами)
+|   ├── models_book.py           # Моделі классу Addressbook
+│
+├── notes/
+│   ├── __init__.py
+│   ├── Notes_manager.py         # класс Notes_manager  
+│   ├── notes_functions.py       # Функціі классу Notes_manager та Логика работы с нотатками
+|   ├── models_notes.py          # Моделі классу Notes_manager
+│
+├── tests/
+│   ├── __init__.py
+│   ├── file_manager.py          # Управление файлами (сохранение/загрузка данных)
+│   ├── text_analyzer.py         # Интеллектуальный анализ текста
+│   └── date_utils.py            # Утилиты для работы с датами (дни рождения)
+│
+├── tui/
+│   ├── __init__.py
+│   ├── interface.py             # Класс тект-граф інтерфейс 
+│
+├── utils/
+│   ├── __init__.py
+│   ├── config.py                # Конфигурац файл
+│   ├── loadsave.py 
+│   ├── validators.py
+│
+├── main.py                      # Главный файл програми
+├── requirements.txt             # Зависимости
+└── README.md                    # Описание проекта
+ 
