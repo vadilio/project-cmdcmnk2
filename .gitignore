@@ -1,0 +1,7 @@
+.venv
+*__pycache__*
+personal_assistant_data
+.idea
+.DS_Store
+# pull request list
+pullrequest-list.txt
