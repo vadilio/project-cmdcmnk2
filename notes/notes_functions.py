@@ -1,6 +1,7 @@
 from utils.validators import *
 from notes.models_notes import Note
 from notes.Notes_manager import NotesManager
+from utils.loadsave import save_notes
 
 
 # --- Функції-обробники для Нотаток ---
@@ -22,6 +23,7 @@ def add_note(args, notes: NotesManager):
     # Створюємо нотатку (валідація тексту і тегів всередині)
     note = Note(text, tags)
     notes.add_note(note)
+    save_notes(notes)  # Зберігаємо нотатку
     return "Нотатку успішно додано."
 
 
@@ -69,10 +71,12 @@ def edit_note(args, notes: NotesManager):
     if action == "1":
         new_text = input("Введіть новий текст нотатки: ").strip()
         notes.edit_note_text(index, new_text)  # Валідація всередині
+        save_notes(notes)  # Зберігаємо оновлені дані
         return f"Текст нотатки {index} оновлено."
     elif action == "2":
         tag_to_add = input("Введіть тег для додавання: ").strip()
         notes.add_note_tag(index, tag_to_add)  # Валідація всередині
+        save_notes(notes)  # Зберігаємо оновлені дані
         return f"Тег '{tag_to_add}' додано до нотатки {index}."
     elif action == "3":
         if not note_to_edit.tags:
@@ -81,6 +85,7 @@ def edit_note(args, notes: NotesManager):
         tag_to_remove = input("Введіть тег для видалення: ").strip()
         # Обробка помилок всередині
         notes.remove_note_tag(index, tag_to_remove)
+        save_notes(notes)  # Зберігаємо зміни після видалення
         return f"Тег '{tag_to_remove}' видалено з нотатки {index} (якщо він існував)."
     elif action == "0":
         return "Редагування скасовано."
@@ -104,6 +109,7 @@ def delete_note(args, notes: NotesManager):
 
     # Видалення відбувається в методі NotesManager, який також може викликати IndexError
     notes.delete_note(index)
+    save_notes(notes)  # Зберігаємо видалені дані
     return f"Нотатку з індексом {index} успішно видалено."
 
 

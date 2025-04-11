@@ -1,5 +1,5 @@
 from collections import UserDict
-from utils.loadsave import load_data, save_data
+from utils.loadsave import load_data, save_contacts, save_notes
 import difflib  # Для додаткового функціоналу вгадування команд
 from address_book.ab_functions import *
 from notes.notes_functions import *
@@ -106,7 +106,8 @@ def main():
             # Обробка команд виходу
             if command in ["exit", "close"]:
                 print("До побачення! Зберігаю дані...")
-                save_data(book, notes_manager)  # Зберігаємо дані перед виходом
+                save_contacts(book)  # Зберігаємо контакти
+                save_notes(notes_manager)  # Зберігаємо нотатки
                 break
 
             # Пошук та виконання команди
@@ -127,7 +128,8 @@ def main():
                         # Обробка виходу тут теж
                         if closest_command in ["exit", "close"]:
                             print("До побачення! Зберігаю дані...")
-                            save_data(book, notes_manager)
+                            save_contacts(book)  # Зберігаємо контакти
+                            save_notes(notes_manager)  # Зберігаємо нотатки
                             break
                         result = commands[closest_command](args)
                         print(result)
@@ -140,12 +142,14 @@ def main():
 
         except (KeyboardInterrupt):  # Обробка Ctrl+C
             print("\nОтримано сигнал переривання. Зберігаю дані та виходжу...")
-            save_data(book, notes_manager)
+            save_contacts(book)  # Зберігаємо контакти
+            save_notes(notes_manager)  # Зберігаємо нотатки
             break
         except Exception as e:  # Загальний обробник непередбачених помилок на верхньому рівні
             print(f"\nСталася критична помилка: {e}")
             print("Спробую зберегти дані...")
-            save_data(book, notes_manager)
+            save_contacts(book)  # Зберігаємо контакти
+            save_notes(notes_manager)  # Зберігаємо нотатки
             # Можна додати запис у лог або інші дії
             break  # Завершуємо роботу після критичної помилки
 
