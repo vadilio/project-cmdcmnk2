@@ -11,6 +11,9 @@ from utils.loadsave import save_notes
 def add_note(args, notes: NotesManager):
     """Додає нову нотатку з інтерактивним введенням."""
     # Аргументи args тут не використовуються, оскільки все вводиться інтерактивно
+    # Введення заголовка (опціонально)
+    title = input("Введіть заголовок нотатки (опціонально): ").strip()
+    # Введення тексту нотатки
     text = input("Введіть текст нотатки: ").strip()
     # Валідація тексту відбувається в класі Note
     tags_input = input("Введіть теги через кому (опціонально): ").strip()
@@ -21,7 +24,7 @@ def add_note(args, notes: NotesManager):
     )
 
     # Створюємо нотатку (валідація тексту і тегів всередині)
-    note = Note(text, tags)
+    note = Note(title, text, tags)
     notes.add_note(note)
     save_notes(notes)  # Зберігаємо нотатку
     return "Нотатку успішно додано."
@@ -29,12 +32,20 @@ def add_note(args, notes: NotesManager):
 
 @input_error
 def find_notes(args, notes: NotesManager):
-    """Шукає нотатки за текстом або тегом."""
+    """Шукає нотатки за текстом, тегом або заголовком."""
     if not args:
         return "Введіть запит для пошуку нотаток після команди 'find_notes'."
-    query = " ".join(args)
-    # Повертає список кортежів (індекс, нотатка)
-    results = notes.find_notes(query)
+    query = " ".join(args).lower()
+    # Пошук по заголовках, текстах і тегах
+    results = []
+    for idx, note in enumerate(notes.notes):
+        if (
+            query in note.title.lower()
+            or query in note.text.lower()
+            or any(query in tag for tag in note.tags)
+        ):
+            results.append((idx, note))
+
     if not results:
         return f"Нотатки за запитом '{query}' не знайдено."
 
@@ -64,6 +75,7 @@ def edit_note(args, notes: NotesManager):
     print("1 - Текст")
     print("2 - Додати тег")
     print("3 - Видалити тег")
+    print("4 - Редагувати заголовок")
     print("0 - Скасувати")
 
     action = input("Ваш вибір: ").strip()
@@ -87,6 +99,11 @@ def edit_note(args, notes: NotesManager):
         notes.remove_note_tag(index, tag_to_remove)
         save_notes(notes)  # Зберігаємо зміни після видалення
         return f"Тег '{tag_to_remove}' видалено з нотатки {index} (якщо він існував)."
+    elif action == "4":
+        new_title = input("Введіть новий заголовок: ").strip()
+        note_to_edit.edit_title(new_title)  # Редагуємо заголовок
+        save_notes(notes)  # Зберігаємо оновлені дані
+        return f"Заголовок нотатки {index} оновлено."
     elif action == "0":
         return "Редагування скасовано."
     else:

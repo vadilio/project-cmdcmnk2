@@ -21,6 +21,11 @@ class NotesManager:
         query_lower = query.lower()
         for i, note in enumerate(self.notes):
             found = False
+            # Пошук у заголовку
+            if query_lower in note.title.lower():
+                results.append((i, note))
+                found = True
+
             # Пошук у тексті
             if query_lower in note.text.lower():
                 # Зберігаємо індекс для редагування/видалення
@@ -33,6 +38,13 @@ class NotesManager:
                 results.append((i, note))
 
         return results
+
+    def edit_note_title(self, index, new_title):
+        """Редагує заголовок нотатки за індексом."""
+        if 0 <= index < len(self.notes):
+            self.notes[index].edit_title(new_title)
+        else:
+            raise IndexError("Неправильний індекс нотатки.")
 
     def edit_note_text(self, index, new_text):
         """Редагує текст нотатки за індексом."""
@@ -77,10 +89,8 @@ class NotesManager:
 
         tag_lower = tag.strip().lower()
         # Розділяємо нотатки на дві групи: ті, що містять тег, і ті, що ні
-        notes_with_tag = [
-            note for note in self.notes if tag_lower in note.tags]
-        notes_without_tag = [
-            note for note in self.notes if tag_lower not in note.tags]
+        notes_with_tag = [note for note in self.notes if tag_lower in note.tags]
+        notes_without_tag = [note for note in self.notes if tag_lower not in note.tags]
         # Можна додати сортування всередині кожної групи, наприклад, за датою створення
         # notes_with_tag.sort(key=lambda n: n.created_at, reverse=True)
         # notes_without_tag.sort(key=lambda n: n.created_at, reverse=True)
