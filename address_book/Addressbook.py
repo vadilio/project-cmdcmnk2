@@ -5,12 +5,14 @@ from address_book.models_book import Record
 class AddressBook(UserDict):
     """Клас для зберігання та управління записами контактів."""
 
-    def add_record(self, record: Record):
+    def add_record(self, record: Record, no_chek=False):
         """Додає запис до адресної книги."""
         if not isinstance(record, Record):
             raise TypeError("Можна додавати лише об'єкти типу Record")
         if record.name.value in self.data:
-            raise ValueError(f"Контакт з ім'ям {record.name.value} вже існує.")
+            if not no_chek:  # обходим проверку, для автоматического добавления записей для тестов
+                raise ValueError(
+                    f"Контакт з ім'ям {record.name.value} вже існує.")
         self.data[record.name.value] = record
 
     def find(self, name):

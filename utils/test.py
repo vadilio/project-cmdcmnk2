@@ -11,6 +11,6 @@ def generate_employees(args, book: AddressBook):
     for i in range(1, int(num_employees) + 1):
         birth_date = (datetime(
             1970, 1, 1) + timedelta(days=random.randint(0, 13879))).strftime('%d.%m.%Y')
-        book.add_record(Record(f'Employee_{i}', "".join(
-            str(random.randint(0, 9)) for _ in range(10)), birth_date))
+        book.add_record(Record(name=f'Employee_{i}', phones="".join(
+            str(random.randint(0, 9)) for _ in range(10)), birthday=birth_date), no_chek=True)
     return f"Contacts added: {num_employees}\n"

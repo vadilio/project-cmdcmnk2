@@ -1,5 +1,6 @@
 import re
 from datetime import datetime
+import calendar
 # from Validators.validators import input_error, PhoneValidationError, BirthdayValidationError
 
 
@@ -83,9 +84,11 @@ class Address(Field):
 class Record:
     """Клас для зберігання інформації про контакт, включаючи ім'я та список телефонів."""
 
-    def __init__(self, name, address=None, email=None, birthday=None):
+    def __init__(self, name, address=None, email=None, birthday=None, phones=None):
         self.name = Name(name)  # Ім'я обов'язкове
         self.phones = []
+        if phones:
+            self.add_phone(phones)
         # Використовуємо сеттери для валідації при ініціалізації
         self.address = None
         if address:
@@ -165,16 +168,28 @@ class Record:
         except ValueError:
             return None  # Помилка формату дати
 
-        bday_this_year = bday.replace(year=today.year)
+        flag_current_year_isnot_leap = not calendar.isleap(today.year)
+        flag_next_year_isnot_leap = not calendar.isleap(today.year+1)
 
-        if bday_this_year < today:
-            # День народження вже був цього року, розглядаємо наступний рік
-            bday_next_year = bday.replace(year=today.year + 1)
-            delta = bday_next_year - today
+        # задаємо ознаку того, що ДН у високосну дату
+        flag_bd_in_leap_feb_29 = True if bday.month == 2 and bday.day == 29 else False
+        # Перевірка, чи день народження вже був у цьому році
+        # flag_pass_b - true якщо ДН вже був в цьому році
+        # якщо ДН був у високосному році 29 лютого то та цей рік НЕ Є високосним, то
+        # порівняння робимо з урахуванням -одного дня
+        flag_pass_b = datetime(today.year, bday.month, bday.day-int(
+            flag_bd_in_leap_feb_29*flag_current_year_isnot_leap)).date() < today
+        if flag_pass_b:
+            # якщо дата народження була 29 лютого у високосному році,
+            # и ДН вже в цьому році був, то переносимо на наступний рік, але якщо
+            # наступний рік не є високосний - змінюемо день народженя 29 лютого на -1 день
+            bday = datetime(
+                today.year + 1, bday.month, bday.day-int(flag_bd_in_leap_feb_29*flag_next_year_isnot_leap)).date()
         else:
-            # День народження ще буде цього року
-            delta = bday_this_year - today
-
+            bday = datetime(today.year, bday.month, bday.day -
+                            int(flag_bd_in_leap_feb_29*flag_current_year_isnot_leap)).date()
+        # День народження ще буде цього року
+        delta = bday - today
         return delta.days
 
     def __str__(self):
