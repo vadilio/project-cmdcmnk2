@@ -3,6 +3,7 @@ from utils.loadsave import load_data, save_data
 import difflib  # Для додаткового функціоналу вгадування команд
 from address_book.ab_functions import *
 from notes.notes_functions import *
+from utils.test import generate_employees
 
 
 # --- Головна Логіка та Парсер Команд ---
@@ -42,6 +43,7 @@ def show_help(available_commands):
         "delete_note": "delete_note <індекс> - Видалити нотатку за її індексом",
         "show_notes": "show_notes - Показати всі нотатки з їхніми поточними індексами",
         "sort_notes": "sort_notes <тег> - Показати нотатки, відсортовані за тегом (з тегом перші, без індексів)",
+        "auto": "auto <XXX> - створити XXX тестових записів у адресну книгу",
         "hello": "hello - Отримати привітання від бота",
         "help": "help - Показати цю довідку",
         "exit": "exit або close - Вийти з програми та зберегти дані",
@@ -76,6 +78,7 @@ def main():
         "find_contact": lambda args: find_contact(args, book),
         "show_contacts": lambda args: show_all_contacts(args, book),
         "birthdays": lambda args: show_upcoming_birthdays(args, book),
+        "auto": lambda args: generate_employees(args, book),
         # Нотатки
         "add_note": lambda args: add_note(args, notes_manager),
         "find_notes": lambda args: find_notes(args, notes_manager),
