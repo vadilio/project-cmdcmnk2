@@ -48,7 +48,8 @@ class Note:
 
     def __str__(self):
         """Повертає рядкове представлення нотатки."""
-        tags_str = ", ".join(sorted(list(self.tags))) if self.tags else "Немає тегів"
+        tags_str = ", ".join(sorted(list(self.tags))
+                             ) if self.tags else "Немає тегів"
         created_str = self.created_at.strftime("%Y-%m-%d %H:%M:%S")
         # Додаємо індексацію (хоча індекс визначається в NotesManager)
         # Можна додати ID, якщо потрібно унікально ідентифікувати нотатку незалежно від списку
