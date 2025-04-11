@@ -45,3 +45,14 @@ class Note:
         if not new_text or not isinstance(new_text, str):
             raise ValueError("Текст нотатки не може бути порожнім рядком.")
         self.text = new_text
+
+    def __str__(self):
+        """Повертає рядкове представлення нотатки."""
+        tags_str = ", ".join(sorted(list(self.tags))) if self.tags else "Немає тегів"
+        created_str = self.created_at.strftime("%Y-%m-%d %H:%M:%S")
+        # Додаємо індексацію (хоча індекс визначається в NotesManager)
+        # Можна додати ID, якщо потрібно унікально ідентифікувати нотатку незалежно від списку
+        return (
+            f"Створено: {created_str}\nТеги: [{tags_str}]\nТекст: {self.text}\n"
+            + "-" * 20
+        )
