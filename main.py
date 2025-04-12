@@ -72,6 +72,8 @@ def show_help(available_commands):
         "show_contacts": "show_contacts - Показати всі контакти (відсортовані за іменем)",
         "clear_contacts": "clear_contacts - Очистити всю адресну книгу (з підтвердженням)",
         "birthdays": "birthdays <кількість_днів> - Показати дні народження в найближчі N днів",
+        "search_favourite": "Показати всі улюблені контакти",
+        "search_not_favourite": "Показати всі контакти, крім улюблених",
         "add_note": "add_note - Додати нову нотатку (текст і теги запитаються інтерактивно)",
         "find_notes": "find_notes <запит> - Знайти нотатки за текстом або тегом (показує індекси)",
         "edit_note": "edit_note <індекс> - Редагувати нотатку за її індексом (інтерактивно)",
@@ -143,6 +145,8 @@ def main():
             args,
             generate_employees(args, book),
         ),
+        "search_favourite": lambda args: search_by_favourite(book, True),
+        "search_not_favourite": lambda args: search_by_favourite(book, False),
         # Нотатки
         "add_note": lambda args: log_action(
             app_logger, "Додавання нотатки", args, add_note(
