@@ -21,18 +21,37 @@ def parse_input(user_input):
 
 
 def find_closest_command(user_command, available_commands):
-    """Знаходить найближчу команду (додатковий функціонал)."""
+    """
+    Знаходить найближчі команди за введеною частиною команди.
+
+    Параметри:
+    - user_command: введена користувачем частина команди.
+    - available_commands: список доступних команд.
+
+    Повертає:
+    - Список команд, що найбільше схожі на введену команду.
+    """
+    
+    # Перевірка на порожні значення
     if not user_command or not available_commands:
         return []
 
-    # Використовуємо difflib для пошуку схожих команд
-    matches = difflib.get_close_matches(
-        user_command,
-        available_commands,
-        n=5,
-        cutoff=0.7,  # Зменшено cutoff для кращої гнучкості
-    )
+    # Пошук команд, що починаються з введеної частини
+    matches = [cmd for cmd in available_commands if cmd.startswith(user_command)]
 
+    # Якщо не знайшли збігів, пробуємо знайти ті, що закінчуються на введену частину
+    if not matches:
+        matches = [cmd for cmd in available_commands if cmd.endswith(user_command)]
+
+    # Якщо все ще не знайдено, робимо м'яке порівняння для часткових збігів у команді
+    if not matches:
+        matches = difflib.get_close_matches(user_command, available_commands, n=10, cutoff=0.6)
+
+    # Якщо ще не знайдено, шукаємо в середині команд
+    if not matches:
+        matches = [cmd for cmd in available_commands if user_command in cmd]
+
+    # Повертаємо знайдені збіги або порожній список
     return matches if matches else []
 
 
@@ -53,6 +72,8 @@ def show_help(available_commands):
         "show_contacts": "show_contacts - Показати всі контакти (відсортовані за іменем)",
         "clear_contacts": "clear_contacts - Очистити всю адресну книгу (з підтвердженням)",
         "birthdays": "birthdays <кількість_днів> - Показати дні народження в найближчі N днів",
+        "search_favourite": "Показати всі улюблені контакти",
+        "search_not_favourite": "Показати всі контакти, крім улюблених",
         "add_note": "add_note - Додати нову нотатку (текст і теги запитаються інтерактивно)",
         "find_notes": "find_notes <запит> - Знайти нотатки за текстом або тегом (показує індекси)",
         "edit_note": "edit_note <індекс> - Редагувати нотатку за її індексом (інтерактивно)",
@@ -124,6 +145,8 @@ def main():
             args,
             generate_employees(args, book),
         ),
+        "search_favourite": lambda args: search_by_favourite(book, True),
+        "search_not_favourite": lambda args: search_by_favourite(book, False),
         # Нотатки
         "add_note": lambda args: log_action(
             app_logger, "Додавання нотатки", args, add_note(
@@ -182,8 +205,8 @@ def main():
                 print(result)  # Друкуємо результат виконання команди
             else:
                 # Спроба вгадати команду, якщо введено щось невідоме
-                closest_commands = [
-                    cmd for cmd in commands if cmd.startswith(command)]
+                # print(list(commands.keys()))
+                closest_commands = find_closest_command(command, list(commands.keys()))
                 if closest_commands:
                     if len(closest_commands) == 1:
                         suggestion = input(

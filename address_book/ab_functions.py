@@ -75,12 +75,17 @@ def add_contact(args, book: AddressBook):
             # Малоймовірно без валідації в Address
             print(f"Помилка адреси: {e}")
 
+    # Додавання вибору, чи є контакт улюбленим
+    favourite_input = input(f"Чи є контакт {name} улюбленим? (y/n): ").strip().lower()
+    favourite = favourite_input == 'y'  # Якщо 'y', то контакт улюблений, інакше - ні
+
     # Створюємо запис з усіма зібраними даними
     # Передаємо рядкові значення, валідація відбудеться в __init__ та сеттерах Record
     record = Record(name,
                     address=address.value if address else None,
                     email=email.value if email else None,
-                    birthday=birthday.value if birthday else None)
+                    birthday=birthday.value if birthday else None,
+                    favourite=favourite)
     # Додаємо телефони окремо
     for phone_obj in phones_list:
         record.phones.append(phone_obj)  # Вже валідовані об'єкти Phone
@@ -112,6 +117,7 @@ def edit_contact(args, book: AddressBook):
     print("5 - Email")
     print("6 - День народження")
     print("7 - Адресу")
+    print("8 - Статус контакту")
     print("0 - Скасувати")
 
     choice = input("Ваш вибір: ").strip()
@@ -197,6 +203,21 @@ def edit_contact(args, book: AddressBook):
             record.set_address(new_address)  # Валідація (якщо є) в сеттері
             save_contacts(book)
             return f"Адресу для {name} оновлено."
+        
+    elif choice == '8':
+        # Редагуємо статус контакту
+        favourite_input = input(f"Чи хочете ви змінити статус контакту для {name}? (y для 'Улюблений', n для 'Не улюблений'): ").strip().lower()
+        if favourite_input == 'y':
+            record.favourite = True
+            save_contacts(book)
+            return f"Статус контакту {name} змінено."
+        elif favourite_input == 'n':
+            record.favourite = False
+            save_contacts(book)
+            return f"Статус контакту {name} змінено."
+        else:
+            return "Невірний вибір статусу."
+
     elif choice == '0':
         return "Редагування скасовано."
     else:
@@ -274,3 +295,20 @@ def clear_address_book(args, book: AddressBook):
         book.data.clear()
         return "Адресну книгу очищено. Всі контакти видалено."
     return "Операцію скасовано."
+
+def search_by_favourite(book: AddressBook, favourite_status: bool):
+    """Пошук всіх контактів за статусом 'favourite'."""
+    result = None
+    found_contacts = [record for record in book.data.values() if record.favourite == favourite_status]
+
+    if not found_contacts:
+        return "Не знайдено контактів з таким статусом."
+    
+    if favourite_status == True:
+        result = "--- Улюблені Контакти ---\n"
+    else:
+        result = "--- Контакти ---\n"
+    
+    for record in found_contacts:
+        result += f"{record}\n"  # Викликає __str__ для кожного контакту
+    return result
