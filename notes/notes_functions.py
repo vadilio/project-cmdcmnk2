@@ -1,6 +1,7 @@
 from utils.validators import *
 from notes.models_notes import Note
 from notes.Notes_manager import NotesManager
+from utils.loadsave import save_notes
 
 
 # --- Функції-обробники для Нотаток ---
@@ -10,6 +11,9 @@ from notes.Notes_manager import NotesManager
 def add_note(args, notes: NotesManager):
     """Додає нову нотатку з інтерактивним введенням."""
     # Аргументи args тут не використовуються, оскільки все вводиться інтерактивно
+    # Введення заголовка (опціонально)
+    title = input("Введіть заголовок нотатки (опціонально): ").strip()
+    # Введення тексту нотатки
     text = input("Введіть текст нотатки: ").strip()
     # Валідація тексту відбувається в класі Note
     tags_input = input("Введіть теги через кому (опціонально): ").strip()
@@ -20,19 +24,28 @@ def add_note(args, notes: NotesManager):
     )
 
     # Створюємо нотатку (валідація тексту і тегів всередині)
-    note = Note(text, tags)
+    note = Note(title, text, tags)
     notes.add_note(note)
+    save_notes(notes)  # Зберігаємо нотатку
     return "Нотатку успішно додано."
 
 
 @input_error
 def find_notes(args, notes: NotesManager):
-    """Шукає нотатки за текстом або тегом."""
+    """Шукає нотатки за текстом, тегом або заголовком."""
     if not args:
         return "Введіть запит для пошуку нотаток після команди 'find_notes'."
-    query = " ".join(args)
-    # Повертає список кортежів (індекс, нотатка)
-    results = notes.find_notes(query)
+    query = " ".join(args).lower()
+    # Пошук по заголовках, текстах і тегах
+    results = []
+    for idx, note in enumerate(notes.notes):
+        if (
+            query in note.title.lower()
+            or query in note.text.lower()
+            or any(query in tag for tag in note.tags)
+        ):
+            results.append((idx, note))
+
     if not results:
         return f"Нотатки за запитом '{query}' не знайдено."
 
@@ -62,6 +75,7 @@ def edit_note(args, notes: NotesManager):
     print("1 - Текст")
     print("2 - Додати тег")
     print("3 - Видалити тег")
+    print("4 - Редагувати заголовок")
     print("0 - Скасувати")
 
     action = input("Ваш вибір: ").strip()
@@ -69,10 +83,12 @@ def edit_note(args, notes: NotesManager):
     if action == "1":
         new_text = input("Введіть новий текст нотатки: ").strip()
         notes.edit_note_text(index, new_text)  # Валідація всередині
+        save_notes(notes)  # Зберігаємо оновлені дані
         return f"Текст нотатки {index} оновлено."
     elif action == "2":
         tag_to_add = input("Введіть тег для додавання: ").strip()
         notes.add_note_tag(index, tag_to_add)  # Валідація всередині
+        save_notes(notes)  # Зберігаємо оновлені дані
         return f"Тег '{tag_to_add}' додано до нотатки {index}."
     elif action == "3":
         if not note_to_edit.tags:
@@ -81,7 +97,13 @@ def edit_note(args, notes: NotesManager):
         tag_to_remove = input("Введіть тег для видалення: ").strip()
         # Обробка помилок всередині
         notes.remove_note_tag(index, tag_to_remove)
+        save_notes(notes)  # Зберігаємо зміни після видалення
         return f"Тег '{tag_to_remove}' видалено з нотатки {index} (якщо він існував)."
+    elif action == "4":
+        new_title = input("Введіть новий заголовок: ").strip()
+        note_to_edit.edit_title(new_title)  # Редагуємо заголовок
+        save_notes(notes)  # Зберігаємо оновлені дані
+        return f"Заголовок нотатки {index} оновлено."
     elif action == "0":
         return "Редагування скасовано."
     else:
@@ -104,6 +126,7 @@ def delete_note(args, notes: NotesManager):
 
     # Видалення відбувається в методі NotesManager, який також може викликати IndexError
     notes.delete_note(index)
+    save_notes(notes)  # Зберігаємо видалені дані
     return f"Нотатку з індексом {index} успішно видалено."
 
 
@@ -150,3 +173,14 @@ def sort_notes_by_tag(args, notes: NotesManager):
     # Для ясності, виведемо без індексів.
     output += "\n".join(str(note) for note in sorted_notes)
     return output
+@input_error
+def clear_notes(args, notes_manager: NotesManager):
+    """Очищає всі нотатки."""
+    if not notes_manager.notes:
+        return "Список нотаток вже порожній."
+    
+    confirmation = input("Ви впевнені, що хочете видалити ВСІ нотатки? (y/n): ").lower()
+    if confirmation == 'y':
+        notes_manager.notes.clear()
+        return "Всі нотатки видалено."
+    return "Операцію скасовано."

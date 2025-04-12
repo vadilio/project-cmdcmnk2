@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 from utils.validators import *
 from address_book.Addressbook import AddressBook
 from address_book.models_book import Phone, Email, Birthday, Address, Record, Name
+from utils.loadsave import save_contacts
 # import difflib  # Для додаткового функціоналу вгадування команд
 # import os  # Для роботи з файловою системою
 
@@ -85,6 +86,7 @@ def add_contact(args, book: AddressBook):
         record.phones.append(phone_obj)  # Вже валідовані об'єкти Phone
 
     # Додаємо готовий запис до книги (перевірка на існування імені всередині)
+    save_contacts(book)
     book.add_record(record)
     return f"Контакт {name} успішно додано."
 
@@ -127,6 +129,7 @@ def edit_contact(args, book: AddressBook):
         # Оновлюємо ім'я в об'єкті Record (валідація в Name)
         old_record.name = Name(new_name)
         book.data[new_name] = old_record  # Додаємо запис з новим ключем
+        save_contacts(book)
         return f"Ім'я контакту змінено з '{name}' на '{new_name}'."
 
     elif choice == '2':
@@ -134,6 +137,7 @@ def edit_contact(args, book: AddressBook):
             "Введіть номер телефону для додавання (10 цифр): ").strip()
         # Валідація та перевірка на дублікат всередині
         record.add_phone(new_phone)
+        save_contacts(book)
         return f"Телефон {new_phone} додано до контакту {name}."
 
     elif choice == '3':
@@ -145,6 +149,7 @@ def edit_contact(args, book: AddressBook):
         new_phone = input("Введіть новий номер телефону (10 цифр): ").strip()
         # Валідація та обробка помилок всередині
         record.edit_phone(old_phone, new_phone)
+        save_contacts(book)
         return f"Телефон для {name} змінено з {old_phone} на {new_phone}."
 
     elif choice == '4':
@@ -155,6 +160,7 @@ def edit_contact(args, book: AddressBook):
             "Введіть номер телефону для видалення: ").strip()
         # Обробка помилки ValueError всередині
         record.remove_phone(phone_to_delete)
+        save_contacts(book)
         return f"Телефон {phone_to_delete} видалено з контакту {name}."
 
     elif choice == '5':
@@ -162,9 +168,11 @@ def edit_contact(args, book: AddressBook):
             f"Введіть новий email (поточний: {record.email.value if record.email else 'Немає'}, Enter щоб видалити): ").strip()
         if not new_email:
             record.email = None  # Видаляємо email
+            save_contacts(book)
             return f"Email для {name} видалено."
         else:
             record.set_email(new_email)  # Валідація в сеттері
+            save_contacts(book)
             return f"Email для {name} оновлено на {new_email}."
 
     elif choice == '6':
@@ -172,9 +180,11 @@ def edit_contact(args, book: AddressBook):
             f"Введіть новий день народження (ДД.ММ.РРРР) (поточний: {record.birthday.value if record.birthday else 'Немає'}, Enter щоб видалити): ").strip()
         if not new_birthday:
             record.birthday = None  # Видаляємо дату
+            save_contacts(book)
             return f"День народження для {name} видалено."
         else:
             record.set_birthday(new_birthday)  # Валідація в сеттері
+            save_contacts(book)
             return f"День народження для {name} оновлено на {new_birthday}."
 
     elif choice == '7':
@@ -185,6 +195,7 @@ def edit_contact(args, book: AddressBook):
             return f"Адресу для {name} видалено."
         else:
             record.set_address(new_address)  # Валідація (якщо є) в сеттері
+            save_contacts(book)
             return f"Адресу для {name} оновлено."
     elif choice == '0':
         return "Редагування скасовано."
@@ -200,6 +211,7 @@ def delete_contact(args, book: AddressBook):
     name = args[0]
     # Викличе KeyError, якщо контакту немає, обробиться декоратором
     book.delete(name)
+    save_contacts(book)
     return f"Контакт {name} успішно видалено."
 
 
@@ -251,3 +263,14 @@ def show_upcoming_birthdays(args, book: AddressBook):
     output += "\n".join(f"{record.name.value}: {record.birthday.value} (залишилось днів: {record.days_to_birthday()})"
                         for record in upcoming)
     return output
+@input_error
+def clear_address_book(args, book: AddressBook):
+    """Очищає всі контакти з адресної книги."""
+    if not book.data:
+        return "Адресна книга вже порожня."
+    
+    confirmation = input("Ви впевнені, що хочете видалити ВСІ контакти? (y/n): ").lower()
+    if confirmation == 'y':
+        book.data.clear()
+        return "Адресну книгу очищено. Всі контакти видалено."
+    return "Операцію скасовано."
