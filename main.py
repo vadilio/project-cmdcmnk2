@@ -107,7 +107,8 @@ def main():
         "show_contacts": lambda args: show_all_contacts(args, book),
         "birthdays": lambda args: show_upcoming_birthdays(args, book),
         "clear_contacts": lambda args: log_action(
-            app_logger, "Очищення адресної книги", args, clear_address_book(args, book)
+            app_logger, "Очищення адресної книги", args, clear_address_book(
+                args, book)
         ),
         "auto": lambda args: log_action(
             app_logger,
@@ -117,19 +118,23 @@ def main():
         ),
         # Нотатки
         "add_note": lambda args: log_action(
-            app_logger, "Додавання нотатки", args, add_note(args, notes_manager)
+            app_logger, "Додавання нотатки", args, add_note(
+                args, notes_manager)
         ),
         "find_notes": lambda args: find_notes(args, notes_manager),
         "edit_note": lambda args: log_action(
-            app_logger, "Редагування нотатки", args, edit_note(args, notes_manager)
+            app_logger, "Редагування нотатки", args, edit_note(
+                args, notes_manager)
         ),
         "delete_note": lambda args: log_action(
-            app_logger, "Видалення нотатки", args, delete_note(args, notes_manager)
+            app_logger, "Видалення нотатки", args, delete_note(
+                args, notes_manager)
         ),
         "show_notes": lambda args: show_all_notes(args, notes_manager),
         "sort_notes": lambda args: sort_notes_by_tag(args, notes_manager),
         "clear_notes": lambda args: log_action(
-            app_logger, "Очищення всіх нотаток", args, clear_notes(args, notes_manager)
+            app_logger, "Очищення всіх нотаток", args, clear_notes(
+                args, notes_manager)
         ),
         # Допомога та вихід
         "hello": lambda args: "Привіт! Чим я можу допомогти?",
@@ -169,7 +174,8 @@ def main():
                 print(result)  # Друкуємо результат виконання команди
             else:
                 # Спроба вгадати команду, якщо введено щось невідоме
-                closest_commands = [cmd for cmd in commands if cmd.startswith(command)]
+                closest_commands = [
+                    cmd for cmd in commands if cmd.startswith(command)]
                 if closest_commands:
                     if len(closest_commands) == 1:
                         suggestion = input(
@@ -214,8 +220,10 @@ def main():
                                         "close",
                                     ]:  # Якщо вибрана команда exit або close
                                         print("До побачення! Зберігаю дані...")
-                                        save_contacts(book)  # Зберігаємо контакти
-                                        save_notes(notes_manager)  # Зберігаємо нотатки
+                                        # Зберігаємо контакти
+                                        save_contacts(book)
+                                        # Зберігаємо нотатки
+                                        save_notes(notes_manager)
                                         break  # Завершуємо програму
                                     print(result)
                                     break
