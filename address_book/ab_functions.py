@@ -263,3 +263,14 @@ def show_upcoming_birthdays(args, book: AddressBook):
     output += "\n".join(f"{record.name.value}: {record.birthday.value} (залишилось днів: {record.days_to_birthday()})"
                         for record in upcoming)
     return output
+@input_error
+def clear_address_book(args, book: AddressBook):
+    """Очищає всі контакти з адресної книги."""
+    if not book.data:
+        return "Адресна книга вже порожня."
+    
+    confirmation = input("Ви впевнені, що хочете видалити ВСІ контакти? (y/n): ").lower()
+    if confirmation == 'y':
+        book.data.clear()
+        return "Адресну книгу очищено. Всі контакти видалено."
+    return "Операцію скасовано."

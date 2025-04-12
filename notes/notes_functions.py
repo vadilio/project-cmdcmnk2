@@ -173,3 +173,14 @@ def sort_notes_by_tag(args, notes: NotesManager):
     # Для ясності, виведемо без індексів.
     output += "\n".join(str(note) for note in sorted_notes)
     return output
+@input_error
+def clear_notes(args, notes_manager: NotesManager):
+    """Очищає всі нотатки."""
+    if not notes_manager.notes:
+        return "Список нотаток вже порожній."
+    
+    confirmation = input("Ви впевнені, що хочете видалити ВСІ нотатки? (y/n): ").lower()
+    if confirmation == 'y':
+        notes_manager.notes.clear()
+        return "Всі нотатки видалено."
+    return "Операцію скасовано."

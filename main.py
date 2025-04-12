@@ -3,6 +3,8 @@ from utils.loadsave import load_data, save_contacts, save_notes
 import difflib  # Для додаткового функціоналу вгадування команд
 from address_book.ab_functions import *
 from notes.notes_functions import *
+from utils.logger import *
+from utils.logging_functions import *
 from utils.test import generate_employees
 
 
@@ -36,13 +38,17 @@ def show_help(available_commands):
         "delete_contact": "delete_contact <ім'я> - Видалити контакт за ім'ям",
         "find_contact": "find_contact <запит> - Знайти контакти за іменем, телефоном, email або адресою",
         "show_contacts": "show_contacts - Показати всі контакти (відсортовані за іменем)",
+        "clear_contacts": "clear_contacts - Очистити всю адресну книгу (з підтвердженням)",
         "birthdays": "birthdays <кількість_днів> - Показати дні народження в найближчі N днів",
         "add_note": "add_note - Додати нову нотатку (текст і теги запитаються інтерактивно)",
         "find_notes": "find_notes <запит> - Знайти нотатки за текстом або тегом (показує індекси)",
         "edit_note": "edit_note <індекс> - Редагувати нотатку за її індексом (інтерактивно)",
         "delete_note": "delete_note <індекс> - Видалити нотатку за її індексом",
+        "clear_notes": "clear_notes - Видалити всі нотатки (з підтвердженням)",
         "show_notes": "show_notes - Показати всі нотатки з їхніми поточними індексами",
         "sort_notes": "sort_notes <тег> - Показати нотатки, відсортовані за тегом (з тегом перші, без індексів)",
+        "show_logs": "show_logs [кількість] - Показати останні N записів логу (або всі, якщо не вказано кількість)",
+        "clear_logs": "clear_logs - Видалити всі записи логу (з підтвердженням)",
         "auto": "auto <XXX> - створити XXX тестових записів у адресну книгу",
         "hello": "hello - Отримати привітання від бота",
         "help": "help - Показати цю довідку",
@@ -64,7 +70,15 @@ def show_help(available_commands):
 def main():
     """Головна функція програми."""
     # Завантажуємо дані або створюємо нові об'єкти
+    
     book, notes_manager = load_data()
+      # Ініціалізуємо логер
+    import os
+    log_dir = "logs"
+    if not os.path.exists(log_dir):
+        os.makedirs(log_dir)
+    app_logger = Logger("logs/app_log.txt")  # Створюємо екземпляр логера
+    
     print("Ласкаво просимо до Персонального Помічника!")
     print("Введіть 'help' для списку доступних команд.")
 
@@ -72,22 +86,29 @@ def main():
     # Використовуємо lambda, щоб передати book або notes_manager у відповідні функції
     commands = {
         # Контакти
-        "add_contact": lambda args: add_contact(args, book),
-        "edit_contact": lambda args: edit_contact(args, book),
-        "delete_contact": lambda args: delete_contact(args, book),
+        "add_contact": lambda args: log_action(app_logger, "Додавання контакту", args, add_contact(args, book)),
+        "edit_contact": lambda args: log_action(app_logger, "Редагування контакту", args, edit_contact(args, book)),
+        "delete_contact": lambda args: log_action(app_logger, "Видалення контакту", args, delete_contact(args, book)),
         "find_contact": lambda args: find_contact(args, book),
         "show_contacts": lambda args: show_all_contacts(args, book),
         "birthdays": lambda args: show_upcoming_birthdays(args, book),
-        "auto": lambda args: generate_employees(args, book),
+        "clear_contacts": lambda args: log_action(app_logger, "Очищення адресної книги", args, clear_address_book(args, book)),
+        "auto": lambda args: log_action(app_logger, "Генерація тестових контактів", args, generate_employees(args, book)),
+        
         # Нотатки
-        "add_note": lambda args: add_note(args, notes_manager),
+
+        "add_note": lambda args: log_action(app_logger, "Додавання нотатки", args, add_note(args, notes_manager)),
         "find_notes": lambda args: find_notes(args, notes_manager),
-        "edit_note": lambda args: edit_note(args, notes_manager),
-        "delete_note": lambda args: delete_note(args, notes_manager),
+        "edit_note": lambda args: log_action(app_logger, "Редагування нотатки", args, edit_note(args, notes_manager)),
+        "delete_note": lambda args: log_action(app_logger, "Видалення нотатки", args, delete_note(args, notes_manager)),
         "show_notes": lambda args: show_all_notes(args, notes_manager),
         "sort_notes": lambda args: sort_notes_by_tag(args, notes_manager),
+        "clear_notes": lambda args: log_action(app_logger, "Очищення всіх нотаток", args, clear_notes(args, notes_manager)),
         # Допомога та вихід
         "hello": lambda args: "Привіт! Чим я можу допомогти?",
+        # Логи
+        "show_logs": lambda args: show_logs(args, app_logger),
+        "clear_logs": lambda args: clear_logs(args, app_logger),
         # Передаємо ключі команд для показу в довідці
         "help": lambda args: show_help(commands.keys()),
         "exit": lambda args: "exit",  # Спеціальне значення для виходу з циклу
