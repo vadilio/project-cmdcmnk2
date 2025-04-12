@@ -4,6 +4,7 @@ import difflib  # Для додаткового функціоналу вгад�
 from address_book.ab_functions import *
 from notes.notes_functions import *
 from utils.test import generate_employees
+from tui.interface import ContactBookApp
 
 
 # --- Головна Логіка та Парсер Команд ---
@@ -26,6 +27,11 @@ def find_closest_command(user_command, available_commands):
     return matches[0] if matches else None
 
 
+def tui_start(args, book: AddressBook):
+    app = ContactBookApp(book)
+    app.run()
+
+
 def show_help(available_commands):
     """Показує список доступних команд та їх опис."""
     help_text = "Доступні команди:\n" + "="*20 + "\n"
@@ -44,6 +50,7 @@ def show_help(available_commands):
         "show_notes": "show_notes - Показати всі нотатки з їхніми поточними індексами",
         "sort_notes": "sort_notes <тег> - Показати нотатки, відсортовані за тегом (з тегом перші, без індексів)",
         "auto": "auto <XXX> - створити XXX тестових записів у адресну книгу",
+        "tui": "tui - OLDSCHOOL THEME",
         "hello": "hello - Отримати привітання від бота",
         "help": "help - Показати цю довідку",
         "exit": "exit або close - Вийти з програми та зберегти дані",
@@ -79,6 +86,7 @@ def main():
         "show_contacts": lambda args: show_all_contacts(args, book),
         "birthdays": lambda args: show_upcoming_birthdays(args, book),
         "auto": lambda args: generate_employees(args, book),
+        "tui": lambda args: tui_start(args, book),
         # Нотатки
         "add_note": lambda args: add_note(args, notes_manager),
         "find_notes": lambda args: find_notes(args, notes_manager),

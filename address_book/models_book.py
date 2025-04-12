@@ -215,3 +215,18 @@ class Record:
                 f"Адреса: {address_str}, "
                 f"Email: {email_str}"
                 f"{birthday_info}")
+
+    def get_phones(self):
+        return str('; '.join(p.value for p in self.phones))
+
+    def get_name(self) -> str:
+        return str(self.name.value)
+
+    def get_birthday(self) -> str:
+        return str(self.birthday)
+
+    def get_email(self) -> str:
+        return str(self.email)
+
+    def get_address(self) -> str:
+        return str(self.address)
