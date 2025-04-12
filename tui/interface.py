@@ -3,7 +3,6 @@ from address_book.Addressbook import AddressBook
 from address_book.models_book import Record
 import shutil
 import signal
-import re
 # urwid.get_terminal_size() из библиотеки urwid.
 
 
@@ -53,8 +52,10 @@ class ContactBookApp:
     def __init__(self, book: AddressBook):
         self.book = book
         self.overlay_open = False  # флаг открытого окна overlay
-        self.COLUMN_WEIGHTS = [7, 10, 10, 10, 10]
+        self.COLUMN_WEIGHTS = [6, 10, 10, 10, 10]
         self.column_wdth = []
+        self.cols = 0
+        self.rows = 0
         self.HEADERS = ["Name", "Phone", "Email",
                         "Address", "Birthday"]
 
@@ -110,9 +111,9 @@ class ContactBookApp:
         self.terminal_width = shutil.get_terminal_size().columns
         # вычисляем допустимые ширины столюцов
         self.column_wdth = []
-        koef = self.terminal_width/sum(self.COLUMN_WEIGHTS)
+        koef = (self.terminal_width-2)/sum(self.COLUMN_WEIGHTS)
         for weight in self.COLUMN_WEIGHTS:
-            self.column_wdth.append(int(weight*koef))
+            self.column_wdth.append(round(weight*koef))
         if hasattr(self, 'loop') and self.loop is not None:
             self.update_footer()
             self.refresh_list()
@@ -137,7 +138,7 @@ class ContactBookApp:
             contact_info = f"Selected: {selected_contact.get_name()}" if selected_contact else "No contact selected"
         # self.menu.set_text(f"{self.menu_txt} | {contact_info}")
         self.menu.set_text(
-            f"{self.menu_txt} | {self.column_wdth} | {self.terminal_width}")
+            f"{self.menu_txt} | {self.column_wdth} | {self.terminal_width} | {self.cols}")
 
     def create_mc_linebox(self, widget, title=""):
         """задаем параметры виджета-рамки главной таблицы"""
@@ -334,11 +335,11 @@ class ContactBookApp:
     def save_contact(self, button, data):
         edit_name, edit_phone, edit_email, edit_address, edit_birthday, index = data
         new_rec = Record(
-            edit_name.edit_text,
-            edit_phone.edit_text,
-            edit_birthday.edit_text,
-            edit_email.edit_text,
-            edit_address.edit_text,
+            name=edit_name.edit_text,
+            phones=edit_phone.edit_text,
+            birthday=edit_birthday.edit_text,
+            email=edit_email.edit_text,
+            address=edit_address.edit_text,
         )
         if index >= 0:
             self.book.update_record_by_index(index, new_rec)
@@ -417,4 +418,6 @@ class ContactBookApp:
     def run(self):
         self.loop = urwid.MainLoop(
             self.view, self.palette, unhandled_input=self.handle_input)
+        screen = self.loop.screen
+        self.cols, self.rows = screen.get_cols_rows()
         self.loop.run()
