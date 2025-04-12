@@ -10,6 +10,7 @@ from utils.test import generate_employees
 
 # --- Головна Логіка та Парсер Команд ---
 
+
 def parse_input(user_input):
     """Розбирає введений рядок на команду та аргументи."""
     parts = user_input.strip().split()
@@ -21,16 +22,22 @@ def parse_input(user_input):
 def find_closest_command(user_command, available_commands):
     """Знаходить найближчу команду (додатковий функціонал)."""
     if not user_command or not available_commands:
-        return None
+        return []
+
     # Використовуємо difflib для пошуку схожих команд
     matches = difflib.get_close_matches(
-        user_command, available_commands, n=1, cutoff=0.6)  # cutoff - поріг схожості
-    return matches[0] if matches else None
+        user_command,
+        available_commands,
+        n=5,
+        cutoff=0.7,  # Зменшено cutoff для кращої гнучкості
+    )
+
+    return matches if matches else []
 
 
 def show_help(available_commands):
     """Показує список доступних команд та їх опис."""
-    help_text = "Доступні команди:\n" + "="*20 + "\n"
+    help_text = "Доступні команди:\n" + "=" * 20 + "\n"
     # Описи команд
     commands_description = {
         "add_contact": "add_contact <ім'я> - Додати новий контакт (інші поля запитаються інтерактивно)",
@@ -70,15 +77,16 @@ def show_help(available_commands):
 def main():
     """Головна функція програми."""
     # Завантажуємо дані або створюємо нові об'єкти
-    
+
     book, notes_manager = load_data()
-      # Ініціалізуємо логер
+    # Ініціалізуємо логер
     import os
+
     log_dir = "logs"
     if not os.path.exists(log_dir):
         os.makedirs(log_dir)
     app_logger = Logger("logs/app_log.txt")  # Створюємо екземпляр логера
-    
+
     print("Ласкаво просимо до Персонального Помічника!")
     print("Введіть 'help' для списку доступних команд.")
 
@@ -86,24 +94,43 @@ def main():
     # Використовуємо lambda, щоб передати book або notes_manager у відповідні функції
     commands = {
         # Контакти
-        "add_contact": lambda args: log_action(app_logger, "Додавання контакту", args, add_contact(args, book)),
-        "edit_contact": lambda args: log_action(app_logger, "Редагування контакту", args, edit_contact(args, book)),
-        "delete_contact": lambda args: log_action(app_logger, "Видалення контакту", args, delete_contact(args, book)),
+        "add_contact": lambda args: log_action(
+            app_logger, "Додавання контакту", args, add_contact(args, book)
+        ),
+        "edit_contact": lambda args: log_action(
+            app_logger, "Редагування контакту", args, edit_contact(args, book)
+        ),
+        "delete_contact": lambda args: log_action(
+            app_logger, "Видалення контакту", args, delete_contact(args, book)
+        ),
         "find_contact": lambda args: find_contact(args, book),
         "show_contacts": lambda args: show_all_contacts(args, book),
         "birthdays": lambda args: show_upcoming_birthdays(args, book),
-        "clear_contacts": lambda args: log_action(app_logger, "Очищення адресної книги", args, clear_address_book(args, book)),
-        "auto": lambda args: log_action(app_logger, "Генерація тестових контактів", args, generate_employees(args, book)),
-        
+        "clear_contacts": lambda args: log_action(
+            app_logger, "Очищення адресної книги", args, clear_address_book(args, book)
+        ),
+        "auto": lambda args: log_action(
+            app_logger,
+            "Генерація тестових контактів",
+            args,
+            generate_employees(args, book),
+        ),
         # Нотатки
-
-        "add_note": lambda args: log_action(app_logger, "Додавання нотатки", args, add_note(args, notes_manager)),
+        "add_note": lambda args: log_action(
+            app_logger, "Додавання нотатки", args, add_note(args, notes_manager)
+        ),
         "find_notes": lambda args: find_notes(args, notes_manager),
-        "edit_note": lambda args: log_action(app_logger, "Редагування нотатки", args, edit_note(args, notes_manager)),
-        "delete_note": lambda args: log_action(app_logger, "Видалення нотатки", args, delete_note(args, notes_manager)),
+        "edit_note": lambda args: log_action(
+            app_logger, "Редагування нотатки", args, edit_note(args, notes_manager)
+        ),
+        "delete_note": lambda args: log_action(
+            app_logger, "Видалення нотатки", args, delete_note(args, notes_manager)
+        ),
         "show_notes": lambda args: show_all_notes(args, notes_manager),
         "sort_notes": lambda args: sort_notes_by_tag(args, notes_manager),
-        "clear_notes": lambda args: log_action(app_logger, "Очищення всіх нотаток", args, clear_notes(args, notes_manager)),
+        "clear_notes": lambda args: log_action(
+            app_logger, "Очищення всіх нотаток", args, clear_notes(args, notes_manager)
+        ),
         # Допомога та вихід
         "hello": lambda args: "Привіт! Чим я можу допомогти?",
         # Логи
@@ -131,6 +158,10 @@ def main():
                 save_notes(notes_manager)  # Зберігаємо нотатки
                 break
 
+            if len(user_input) < 3:
+                print("Введіть мінімум 3 символи.")
+                continue
+
             # Пошук та виконання команди
             if command in commands:
                 # Викликаємо відповідну lambda функцію
@@ -138,35 +169,74 @@ def main():
                 print(result)  # Друкуємо результат виконання команди
             else:
                 # Спроба вгадати команду, якщо введено щось невідоме
-                closest_command = find_closest_command(
-                    command, list(commands.keys()))
-                if closest_command:
-                    # Запитуємо користувача, чи він мав на увазі знайдену команду
-                    suggestion = input(
-                        f"Невідома команда '{command}'. Можливо, ви мали на увазі '{closest_command}'? (y/n): ").lower()
-                    if suggestion == 'y':
-                        # Виконуємо запропоновану команду з тими ж аргументами
-                        # Обробка виходу тут теж
-                        if closest_command in ["exit", "close"]:
-                            print("До побачення! Зберігаю дані...")
-                            save_contacts(book)  # Зберігаємо контакти
-                            save_notes(notes_manager)  # Зберігаємо нотатки
-                            break
-                        result = commands[closest_command](args)
-                        print(result)
+                closest_commands = [cmd for cmd in commands if cmd.startswith(command)]
+                if closest_commands:
+                    if len(closest_commands) == 1:
+                        suggestion = input(
+                            f"Невідома команда '{command}'. Можливо, ви мали на увазі '{closest_commands[0]}'? (y/n): "
+                        ).lower()
+                        if suggestion == "y":
+                            result = commands[closest_commands[0]](args)
+                            if result in [
+                                "exit",
+                                "close",
+                            ]:  # Якщо вибрана команда exit або close
+                                print("До побачення! Зберігаю дані...")
+                                save_contacts(book)  # Зберігаємо контакти
+                                save_notes(notes_manager)  # Зберігаємо нотатки
+                                break  # Завершуємо програму
+                            print(result)
+                        else:
+                            print(
+                                "Команду не виконано. Введіть 'help' для списку команд."
+                            )
                     else:
                         print(
-                            "Команду не виконано. Введіть 'help' для списку команд.")
+                            f"Невідома команда '{command}'. Можливо, ви мали на увазі одну з наступних команд або виберіть 'cancel' для скасування:"
+                        )
+
+                        for idx, cmd in enumerate(
+                            closest_commands + ["cancel"], 1
+                        ):  # Додаємо 'cancel'
+                            print(f"{idx}. {cmd}")
+                        while True:
+                            choice = input("Виберіть номер команди: ").strip()
+
+                            # Перевірка на введення числа
+                            if choice.isdigit():
+                                choice = int(choice)
+                                if 1 <= choice <= len(closest_commands):
+                                    result = commands[closest_commands[choice - 1]](
+                                        args
+                                    )
+                                    if result in [
+                                        "exit",
+                                        "close",
+                                    ]:  # Якщо вибрана команда exit або close
+                                        print("До побачення! Зберігаю дані...")
+                                        save_contacts(book)  # Зберігаємо контакти
+                                        save_notes(notes_manager)  # Зберігаємо нотатки
+                                        break  # Завершуємо програму
+                                    print(result)
+                                    break
+                                elif choice == len(closest_commands) + 1:  # Для cancel
+                                    print("Скасовано. Введіть нову команду.")
+                                    break
+                                else:
+                                    print("Невірний вибір. Введіть номер знову.")
+                            else:
+                                print("Вибір має бути числом. Спробуйте ще раз.")
                 else:
-                    # Якщо схожих команд не знайдено
                     print("Невідома команда. Введіть 'help' для списку команд.")
 
-        except (KeyboardInterrupt):  # Обробка Ctrl+C
+        except KeyboardInterrupt:  # Обробка Ctrl+C
             print("\nОтримано сигнал переривання. Зберігаю дані та виходжу...")
             save_contacts(book)  # Зберігаємо контакти
             save_notes(notes_manager)  # Зберігаємо нотатки
             break
-        except Exception as e:  # Загальний обробник непередбачених помилок на верхньому рівні
+        except (
+            Exception
+        ) as e:  # Загальний обробник непередбачених помилок на верхньому рівні
             print(f"\nСталася критична помилка: {e}")
             print("Спробую зберегти дані...")
             save_contacts(book)  # Зберігаємо контакти
