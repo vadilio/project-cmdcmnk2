@@ -27,7 +27,8 @@ PROJECT-CMDCMNK2/
 │   ├── config.py                # Конфігураційний файл
 │   ├── loadsave.py 
 │   ├── validators.py
-│
+│   ├── logger.py
+│   ├── logging_functions.py
 ├── main.py                      # Головний файл програми
 ├── requirements.txt             # Залежності
 └── README.md                    # Опис проєкту
