@@ -6,3 +6,7 @@ personal_assistant_data
 My
 # pull request list
 pullrequest-list.txt
+# Ігнорування логів
+logs/
+*.log
+app_log.txt

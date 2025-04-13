@@ -84,7 +84,7 @@ class Address(Field):
 class Record:
     """Клас для зберігання інформації про контакт, включаючи ім'я та список телефонів."""
 
-    def __init__(self, name, address=None, email=None, birthday=None, phones=None):
+    def __init__(self, name, address=None, email=None, birthday=None, phones=None, favourite=False):
         self.name = Name(name)  # Ім'я обов'язкове
         self.phones = []
         if phones:
@@ -99,6 +99,7 @@ class Record:
         self.birthday = None
         if birthday:
             self.set_birthday(birthday)
+        self.favourite = favourite
 
     def add_phone(self, phone_number):
         """Додає телефон до запису. """
@@ -216,11 +217,15 @@ class Record:
         else:
             birthday_info = ""  # Не показуємо нічого про ДН, якщо його немає
 
+        # Додаємо відображення статусу "Улюблений"
+        favourite_info = ", Улюблений" if self.favourite else ""
+
         return (f"Ім'я: {self.name.value}, "
                 f"Телефони: {phones_str}, "
                 f"Адреса: {address_str}, "
                 f"Email: {email_str}"
-                f"{birthday_info}")
+                f"{birthday_info}"
+                f"{favourite_info}")
 
     def get_phones(self):
         return str('; '.join(p.value for p in self.phones))
