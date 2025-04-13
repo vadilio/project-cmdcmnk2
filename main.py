@@ -37,11 +37,13 @@ def find_closest_command(user_command, available_commands):
         return []
 
     # Пошук команд, що починаються з введеної частини
-    matches = [cmd for cmd in available_commands if cmd.startswith(user_command)]
+    matches = [
+        cmd for cmd in available_commands if cmd.startswith(user_command)]
 
     # Якщо не знайшли збігів, пробуємо знайти ті, що закінчуються на введену частину
     if not matches:
-        matches = [cmd for cmd in available_commands if cmd.endswith(user_command)]
+        matches = [
+            cmd for cmd in available_commands if cmd.endswith(user_command)]
 
     # Якщо все ще не знайдено, робимо м'яке порівняння для часткових збігів у команді
     if not matches:
@@ -139,7 +141,8 @@ def main():
         "birthdays": lambda args: show_upcoming_birthdays(args, book),
         "tui": lambda args: tui_start(args, book),
         "clear_contacts": lambda args: log_action(
-            app_logger, "Очищення адресної книги", args, clear_address_book(args, book)
+            app_logger, "Очищення адресної книги", args, clear_address_book(
+                args, book)
         ),
         "auto": lambda args: log_action(
             app_logger,
@@ -152,19 +155,23 @@ def main():
         "search_not_favourite": lambda args: search_by_favourite(book, False),
         # Нотатки
         "add_note": lambda args: log_action(
-            app_logger, "Додавання нотатки", args, add_note(args, notes_manager)
+            app_logger, "Додавання нотатки", args, add_note(
+                args, notes_manager)
         ),
         "find_notes": lambda args: find_notes(args, notes_manager),
         "edit_note": lambda args: log_action(
-            app_logger, "Редагування нотатки", args, edit_note(args, notes_manager)
+            app_logger, "Редагування нотатки", args, edit_note(
+                args, notes_manager)
         ),
         "delete_note": lambda args: log_action(
-            app_logger, "Видалення нотатки", args, delete_note(args, notes_manager)
+            app_logger, "Видалення нотатки", args, delete_note(
+                args, notes_manager)
         ),
         "show_notes": lambda args: show_all_notes(args, notes_manager),
         "sort_notes": lambda args: sort_notes_by_tag(args, notes_manager),
         "clear_notes": lambda args: log_action(
-            app_logger, "Очищення всіх нотаток", args, clear_notes(args, notes_manager)
+            app_logger, "Очищення всіх нотаток", args, clear_notes(
+                args, notes_manager)
         ),
         # Допомога та вихід
         "hello": lambda args: "Привіт! Чим я можу допомогти?",
@@ -205,7 +212,8 @@ def main():
             else:
                 # Спроба вгадати команду, якщо введено щось невідоме
                 # print(list(commands.keys()))
-                closest_commands = find_closest_command(command, list(commands.keys()))
+                closest_commands = find_closest_command(
+                    command, list(commands.keys()))
                 if closest_commands:
                     if len(closest_commands) == 1:
                         suggestion = input(

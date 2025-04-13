@@ -6,6 +6,47 @@ import signal
 # urwid.get_terminal_size() из библиотеки urwid.
 
 
+class SmartNameEdit(urwid.Edit):
+    def __init__(self, caption="", edit_text=""):
+        super().__init__(caption=caption, edit_text=edit_text)
+        # self.raw_numbers_bd = ""  # Это введенная строка без обработки - DD.MM.YYYY
+        self.raw_name = edit_text
+        self.set_edit_pos(len(edit_text))
+
+    def is_Name_not_empty(self, text):
+        if len(text) > 0:
+            return True
+        else:
+            return False
+
+    def keypress(self, size, key):
+
+        if key in ('up', 'down'):
+            # Разрешаем переход только если последний ДР корректен
+
+            if self.is_Name_not_empty(self.raw_name):
+                self.set_edit_text(self.raw_name)
+                return key  # передаём управление другим виджетам
+            else:
+                return  # # игнорируем все остальные клавиши
+        elif key == 'backspace':
+            if self.raw_name:   # if the field not empty
+                # Delete last digit
+                self.raw_name = self.raw_name[:-1]
+                self.update_text(self.raw_name)
+                return
+        elif len(key) == 1 and self.valid_char(key):
+            self.raw_name += key
+            self.update_text(self.raw_name)
+            return
+
+    def update_text(self, text) -> str:
+        #
+        self.set_edit_text(text)
+        self.set_edit_pos(len(self.text))
+        return text
+
+
 class SmartBDEdit(urwid.Edit):
     def __init__(self, caption="", edit_text=""):
         super().__init__(caption=caption, edit_text=edit_text)
@@ -16,7 +57,7 @@ class SmartBDEdit(urwid.Edit):
             self.update_text(edit_text)
             self.set_edit_pos(len(edit_text))
         else:
-            self.set_edit_text('DD.MM.YYYY')
+            # self.set_edit_text('DD.MM.YYYY')
             self.set_edit_pos(0)
 
     def is_last_number_valid_or_blank(self, text):
@@ -55,14 +96,19 @@ class SmartBDEdit(urwid.Edit):
 
         if key in ('up', 'down'):
             # Разрешаем переход только если последний ДР корректен
+
             if self.is_last_number_valid_or_blank(self.raw_numbers_bd):
+                self.set_edit_text(self.raw_numbers_bd)
                 return key  # передаём управление другим виджетам
             else:
                 return  # # игнорируем все остальные клавиши
         elif key == 'backspace':
             if self.raw_numbers_bd:   # if the field not empty
                 # Delete last digit
-                self.raw_numbers_bd = self.raw_numbers_bd[:-1]
+                if self.raw_numbers_bd[-1] == '.':
+                    self.raw_numbers_bd = self.raw_numbers_bd[:-2]
+                else:
+                    self.raw_numbers_bd = self.raw_numbers_bd[:-1]
             self.update_text(self.raw_numbers_bd)
             return
         elif len(key) == 1 and self.valid_char(key):
@@ -337,7 +383,8 @@ class ContactBookApp:
     def create_contact_form(self, record=None):
         """Создает форму для добавления или редактирования контакта."""
         # Поля редактирования
-        edit_name = urwid.Edit("Name: ", record.get_name() if record else "")
+        edit_name = SmartNameEdit(
+            "Name: ", record.get_name() if record else "")
         edit_phone = SmartPhoneEdit(
             "Phone: ", record.get_phones() if record else "")
         # urwid.Edit("Phone: ", record.get_phones() if record else "")
