@@ -4,6 +4,7 @@ from address_book.Addressbook import AddressBook
 from address_book.models_book import Record
 from notes.Notes_manager import NotesManager
 from notes.models_notes import Note
+import csv
 
 
 # --- Збереження та Завантаження Даних ---
@@ -138,3 +139,47 @@ def load_data():
             notes_manager = NotesManager()
 
     return book, notes_manager
+
+
+def export_contacts_to_csv(book: AddressBook):
+    """Експортує контакти у файл CSV."""
+    file_name = CONTACTS_CSV_FILE  # Використовуємо константу для файлу
+
+    try:
+        ensure_data_dir_exists()  # Переконуємось, що папка існує
+    except OSError:
+        print("Не вдалося створити папку для даних. Збереження неможливе.")
+        return  # Виходимо, якщо папку створити не вдалося
+
+    try:
+        with open(file_name, mode="w", newline="", encoding="utf-8") as csvfile:
+            fieldnames = ["Name", "Phone", "Email", "Birthday", "Address", "Favourite"]
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+
+            writer.writeheader()  # Записуємо заголовки
+
+            for record in book.data.values():
+                # Формуємо словник для кожного контакту
+                writer.writerow(
+                    {
+                        "Name": record.name.value,
+                        "Phone": (
+                            "; ".join(p.value for p in record.phones)
+                            if record.phones
+                            else "N/A"
+                        ),
+                        "Email": record.email.value if record.email else "N/A",
+                        "Birthday": (
+                            record.birthday.value if record.birthday else "N/A"
+                        ),
+                        "Address": record.address.value if record.address else "N/A",
+                        "Favourite": "Yes" if record.favourite else "No",
+                    }
+                )
+
+        return f"Контакти успішно експортовані у {file_name}."
+
+    except IOError as e:
+        # Ловимо лише IO помилки (наприклад, якщо проблема з доступом до файлу)
+        print(f"Помилка збереження контактів: {e}")
+        return None

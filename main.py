@@ -31,7 +31,7 @@ def find_closest_command(user_command, available_commands):
     Повертає:
     - Список команд, що найбільше схожі на введену команду.
     """
-    
+
     # Перевірка на порожні значення
     if not user_command or not available_commands:
         return []
@@ -45,7 +45,9 @@ def find_closest_command(user_command, available_commands):
 
     # Якщо все ще не знайдено, робимо м'яке порівняння для часткових збігів у команді
     if not matches:
-        matches = difflib.get_close_matches(user_command, available_commands, n=10, cutoff=0.6)
+        matches = difflib.get_close_matches(
+            user_command, available_commands, n=10, cutoff=0.6
+        )
 
     # Якщо ще не знайдено, шукаємо в середині команд
     if not matches:
@@ -71,6 +73,7 @@ def show_help(available_commands):
         "find_contact": "find_contact <запит> - Знайти контакти за іменем, телефоном, email або адресою",
         "show_contacts": "show_contacts - Показати всі контакти (відсортовані за іменем)",
         "clear_contacts": "clear_contacts - Очистити всю адресну книгу (з підтвердженням)",
+        "save_contacts_csv": "save_contacts_csv - Експортувати контакти в CSV файл",
         "birthdays": "birthdays <кількість_днів> - Показати дні народження в найближчі N днів",
         "search_favourite": "Показати всі улюблені контакти",
         "search_not_favourite": "Показати всі контакти, крім улюблених",
@@ -136,8 +139,7 @@ def main():
         "birthdays": lambda args: show_upcoming_birthdays(args, book),
         "tui": lambda args: tui_start(args, book),
         "clear_contacts": lambda args: log_action(
-            app_logger, "Очищення адресної книги", args, clear_address_book(
-                args, book)
+            app_logger, "Очищення адресної книги", args, clear_address_book(args, book)
         ),
         "auto": lambda args: log_action(
             app_logger,
@@ -145,27 +147,24 @@ def main():
             args,
             generate_employees(args, book),
         ),
+        "save_contacts_csv": lambda args: export_contacts_handler(args, book),
         "search_favourite": lambda args: search_by_favourite(book, True),
         "search_not_favourite": lambda args: search_by_favourite(book, False),
         # Нотатки
         "add_note": lambda args: log_action(
-            app_logger, "Додавання нотатки", args, add_note(
-                args, notes_manager)
+            app_logger, "Додавання нотатки", args, add_note(args, notes_manager)
         ),
         "find_notes": lambda args: find_notes(args, notes_manager),
         "edit_note": lambda args: log_action(
-            app_logger, "Редагування нотатки", args, edit_note(
-                args, notes_manager)
+            app_logger, "Редагування нотатки", args, edit_note(args, notes_manager)
         ),
         "delete_note": lambda args: log_action(
-            app_logger, "Видалення нотатки", args, delete_note(
-                args, notes_manager)
+            app_logger, "Видалення нотатки", args, delete_note(args, notes_manager)
         ),
         "show_notes": lambda args: show_all_notes(args, notes_manager),
         "sort_notes": lambda args: sort_notes_by_tag(args, notes_manager),
         "clear_notes": lambda args: log_action(
-            app_logger, "Очищення всіх нотаток", args, clear_notes(
-                args, notes_manager)
+            app_logger, "Очищення всіх нотаток", args, clear_notes(args, notes_manager)
         ),
         # Допомога та вихід
         "hello": lambda args: "Привіт! Чим я можу допомогти?",
