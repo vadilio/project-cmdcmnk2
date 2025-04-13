@@ -45,7 +45,7 @@ class Phone(Field):
         # Наприклад, для дозволу + та інших символів: r"^\+?\d[\d\s-()]{8,}\d$"
         if not isinstance(value, str) or not re.fullmatch(r"\d{10}", value):
             raise ValueError(
-                "Неправильний формат номеру телефону. Очікується 10 цифр.")
+                f"Неправильний формат номеру телефону. Очікується 10 цифр.")
         self._value = value
 
 
@@ -102,15 +102,21 @@ class Record:
         self.favourite = favourite
 
     def add_phone(self, phone_number):
-        """Додає телефон до запису."""
-        phone = Phone(
-            phone_number)  # Валідація відбувається при створенні Phone
-        # Перевірка на дублікати перед додаванням
-        if phone.value not in [p.value for p in self.phones]:
-            self.phones.append(phone)
+        """Додає телефон до запису. """
+        if isinstance(phone_number, list):  # Якще передаємо списком з TUI
+            self.phones.clear
+            for phone in phone_number:
+                phone = Phone(phone)
+                self.phones.append(phone)
         else:
-            # Або raise ValueError
-            print(f"Телефон {phone.value} вже існує для цього контакту.")
+            phone = Phone(
+                phone_number)  # Валідація відбувається при створенні Phone
+            # Перевірка на дублікати перед додаванням
+            if phone.value not in [p.value for p in self.phones]:
+                self.phones.append(phone)
+            else:
+                # Або raise ValueError
+                print(f"Телефон {phone.value} вже існує для цього контакту.")
 
     def remove_phone(self, phone_number):
         """Видаляє телефон із запису."""
