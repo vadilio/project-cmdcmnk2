@@ -21,18 +21,39 @@ def parse_input(user_input):
 
 
 def find_closest_command(user_command, available_commands):
-    """Знаходить найближчу команду (додатковий функціонал)."""
+    """
+    Знаходить найближчі команди за введеною частиною команди.
+
+    Параметри:
+    - user_command: введена користувачем частина команди.
+    - available_commands: список доступних команд.
+
+    Повертає:
+    - Список команд, що найбільше схожі на введену команду.
+    """
+
+    # Перевірка на порожні значення
     if not user_command or not available_commands:
         return []
 
-    # Використовуємо difflib для пошуку схожих команд
-    matches = difflib.get_close_matches(
-        user_command,
-        available_commands,
-        n=5,
-        cutoff=0.7,  # Зменшено cutoff для кращої гнучкості
-    )
+    # Пошук команд, що починаються з введеної частини
+    matches = [cmd for cmd in available_commands if cmd.startswith(user_command)]
 
+    # Якщо не знайшли збігів, пробуємо знайти ті, що закінчуються на введену частину
+    if not matches:
+        matches = [cmd for cmd in available_commands if cmd.endswith(user_command)]
+
+    # Якщо все ще не знайдено, робимо м'яке порівняння для часткових збігів у команді
+    if not matches:
+        matches = difflib.get_close_matches(
+            user_command, available_commands, n=10, cutoff=0.6
+        )
+
+    # Якщо ще не знайдено, шукаємо в середині команд
+    if not matches:
+        matches = [cmd for cmd in available_commands if user_command in cmd]
+
+    # Повертаємо знайдені збіги або порожній список
     return matches if matches else []
 
 
@@ -54,6 +75,8 @@ def show_help(available_commands):
         "clear_contacts": "clear_contacts - Очистити всю адресну книгу (з підтвердженням)",
         "save_contacts_csv": "save_contacts_csv - Експортувати контакти в CSV файл",
         "birthdays": "birthdays <кількість_днів> - Показати дні народження в найближчі N днів",
+        "search_favourite": "Показати всі улюблені контакти",
+        "search_not_favourite": "Показати всі контакти, крім улюблених",
         "add_note": "add_note - Додати нову нотатку (текст і теги запитаються інтерактивно)",
         "find_notes": "find_notes <запит> - Знайти нотатки за текстом або тегом (показує індекси)",
         "edit_note": "edit_note <індекс> - Редагувати нотатку за її індексом (інтерактивно)",
@@ -116,8 +139,7 @@ def main():
         "birthdays": lambda args: show_upcoming_birthdays(args, book),
         "tui": lambda args: tui_start(args, book),
         "clear_contacts": lambda args: log_action(
-            app_logger, "Очищення адресної книги", args, clear_address_book(
-                args, book)
+            app_logger, "Очищення адресної книги", args, clear_address_book(args, book)
         ),
         "auto": lambda args: log_action(
             app_logger,
@@ -126,25 +148,23 @@ def main():
             generate_employees(args, book),
         ),
         "save_contacts_csv": lambda args: export_contacts_handler(args, book),
+        "search_favourite": lambda args: search_by_favourite(book, True),
+        "search_not_favourite": lambda args: search_by_favourite(book, False),
         # Нотатки
         "add_note": lambda args: log_action(
-            app_logger, "Додавання нотатки", args, add_note(
-                args, notes_manager)
+            app_logger, "Додавання нотатки", args, add_note(args, notes_manager)
         ),
         "find_notes": lambda args: find_notes(args, notes_manager),
         "edit_note": lambda args: log_action(
-            app_logger, "Редагування нотатки", args, edit_note(
-                args, notes_manager)
+            app_logger, "Редагування нотатки", args, edit_note(args, notes_manager)
         ),
         "delete_note": lambda args: log_action(
-            app_logger, "Видалення нотатки", args, delete_note(
-                args, notes_manager)
+            app_logger, "Видалення нотатки", args, delete_note(args, notes_manager)
         ),
         "show_notes": lambda args: show_all_notes(args, notes_manager),
         "sort_notes": lambda args: sort_notes_by_tag(args, notes_manager),
         "clear_notes": lambda args: log_action(
-            app_logger, "Очищення всіх нотаток", args, clear_notes(
-                args, notes_manager)
+            app_logger, "Очищення всіх нотаток", args, clear_notes(args, notes_manager)
         ),
         # Допомога та вихід
         "hello": lambda args: "Привіт! Чим я можу допомогти?",
@@ -184,8 +204,8 @@ def main():
                 print(result)  # Друкуємо результат виконання команди
             else:
                 # Спроба вгадати команду, якщо введено щось невідоме
-                closest_commands = [
-                    cmd for cmd in commands if cmd.startswith(command)]
+                # print(list(commands.keys()))
+                closest_commands = find_closest_command(command, list(commands.keys()))
                 if closest_commands:
                     if len(closest_commands) == 1:
                         suggestion = input(
