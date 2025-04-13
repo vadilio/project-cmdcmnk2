@@ -6,10 +6,85 @@ import signal
 # urwid.get_terminal_size() из библиотеки urwid.
 
 
+class SmartBDEdit(urwid.Edit):
+    def __init__(self, caption="", edit_text=""):
+        super().__init__(caption=caption, edit_text=edit_text)
+        self.raw_numbers_bd = ""  # Это введенная строка без обработки - DD.MM.YYYY
+
+        if edit_text:
+            self.raw_numbers_bd = edit_text
+            self.update_text(edit_text)
+            self.set_edit_pos(len(edit_text))
+        else:
+            self.set_edit_text('DD.MM.YYYY')
+            self.set_edit_pos(0)
+
+    def is_last_number_valid_or_blank(self, text):
+        return not text or self.is_valid_date(text)
+
+    def valid_char(self, ch):
+        return ch.isdigit()
+
+    def is_valid_date(self, date_str):
+        import datetime
+        try:
+            if date_str:
+                datetime.datetime.strptime(date_str, "%d.%m.%Y")
+                return True
+        except ValueError:
+            return False
+
+    def update_text(self, text) -> str:
+        # Форматируем даты, по шаблону DD.MM.YYYY
+        inde_x = len(text)
+        if inde_x > 10:
+            self.set_edit_pos(11)
+            self.raw_numbers_bd = self.raw_numbers_bd[0:10]
+            return self.raw_numbers_bd
+        elif inde_x == 2 or inde_x == 5:
+            self.raw_numbers_bd += '.'
+        elif inde_x == 10:
+            self.set_edit_pos(11)
+        caption_text = (self.raw_numbers_bd +
+                        "DD.MM.YYYY"[len(self.raw_numbers_bd):])[0:10]
+        self.set_edit_text(caption_text)
+        self.set_edit_pos(len(self.raw_numbers_bd))
+        return caption_text
+
+    def keypress(self, size, key):
+
+        if key in ('up', 'down'):
+            # Разрешаем переход только если последний ДР корректен
+            if self.is_last_number_valid_or_blank(self.raw_numbers_bd):
+                return key  # передаём управление другим виджетам
+            else:
+                return  # # игнорируем все остальные клавиши
+        elif key == 'backspace':
+            if self.raw_numbers_bd:   # if the field not empty
+                # Delete last digit
+                self.raw_numbers_bd = self.raw_numbers_bd[:-1]
+            self.update_text(self.raw_numbers_bd)
+            return
+        elif len(key) == 1 and self.valid_char(key):
+            self.raw_numbers_bd += key
+            self.update_text(self.raw_numbers_bd)
+            return
+
+
 class SmartPhoneEdit(urwid.Edit):
     def __init__(self, caption="", edit_text=""):
         super().__init__(caption=caption, edit_text=edit_text)
-        self.raw_numbers = []  # список строк по 10 цифр
+        self.next_phone_flag = False
+        self.last = 0
+        self.raw_numbers = []
+        # вставляем в поле редактора номера телефонов, сохраненные в редактируемой записи
+        if edit_text:
+            self.raw_numbers = edit_text.split('; ')
+            self.update_text()
+
+    def is_last_number_valid_or_blank(self):
+        return not self.raw_numbers or len(self.raw_numbers[-1]) == 10
+        # return (self.raw_numbers and len(self.raw_numbers[-1]) == 10)
 
     def valid_char(self, ch):
         return ch.isdigit()
@@ -17,9 +92,9 @@ class SmartPhoneEdit(urwid.Edit):
     def keypress(self, size, key):
         if key == 'backspace':
             if self.raw_numbers:
-                last = self.raw_numbers[-1]
-                if last:
-                    self.raw_numbers[-1] = last[:-1]
+                self.last = self.raw_numbers[-1]
+                if self.last:
+                    self.raw_numbers[-1] = self.last[:-1]
                 else:
                     self.raw_numbers.pop()
             self.update_text()
@@ -27,25 +102,48 @@ class SmartPhoneEdit(urwid.Edit):
         elif len(key) == 1 and self.valid_char(key):
             if not self.raw_numbers:
                 self.raw_numbers.append("")
-            if len(self.raw_numbers[-1]) >= 10:
-                if len(self.raw_numbers) < 100:  # ограничение на количество номеров
+            current = self.raw_numbers[-1]
+            if len(current) >= 10:
+                if len(current) == 10 and len(self.raw_numbers) < 100 and not (self.next_phone_flag*bool(self.last)):
+                    # Переход на новый номер, только если текущий номер полностью введён
                     self.raw_numbers.append(key)
                 else:
-                    return  # игнорируем лишнее
+                    return  # Игнорировать символ, если номер не полностью введён
             else:
                 self.raw_numbers[-1] += key
             self.update_text()
+            self.next_phone_flag = len(self.raw_numbers[-1]) == 10
+            if self.next_phone_flag:
+                self.raw_numbers.append("")
+                self.update_text()
             return
+        elif key in ('up', 'down'):
+            # Разрешаем переход только если последний номер корректен
+            if self.is_last_number_valid_or_blank():
+                return key  # передаём управление другим виджетам
+            else:
+                return  # # игнорируем все остальные клавиши
         else:
-            return key  # передать управление по умолчанию
+            return  # игнорируем все остальные клавиши
 
     def update_text(self):
-        formatted = ', '.join(self.raw_numbers)
+        # Форматируем номера, разделяя их запятой
+        formatted_numbers = [num.ljust(10, 'X') for num in self.raw_numbers]
+        formatted = '; '.join(formatted_numbers)  # Номера разделяются запятой
         self.set_edit_text(formatted)
-        self.set_edit_pos(len(formatted))
 
-    def get_phone_numbers(self):
-        return self.raw_numbers
+        # Вычисление позиции курсора:
+        cursor_pos = 0
+        if self.raw_numbers:
+            shift = 2*int(bool(len(formatted_numbers)-1))
+            cursor_pos = len(
+                ', '.join(formatted_numbers[:-1])) + len(self.raw_numbers[-1])+shift
+
+        self.set_edit_pos(cursor_pos)
+
+    # def get_phone_numbers(self):
+        # Возвращаем только полные номера (с 10 цифрами)
+        # return [num for num in self.raw_numbers if len(num) == 10]
 
 
 class ContactBookApp:
@@ -247,7 +345,7 @@ class ContactBookApp:
             "E-Mail: ", record.get_email() if record else "")
         edit_address = urwid.Edit(
             "Address: ", record.get_address() if record else "")
-        edit_birthday = urwid.Edit(
+        edit_birthday = SmartBDEdit(
             "Birthday: ", record.get_birthday() if record else "")
 
         # Кнопки
@@ -290,8 +388,8 @@ class ContactBookApp:
         overlay = urwid.Overlay(
             boxed,
             self.view,
-            align='center', width=(50),
-            valign='middle', height=(11)
+            align='center', width=(60),
+            valign='middle', height=(30)
         )
 
         return overlay, s_button, (edit_name, edit_phone, edit_email, edit_address, edit_birthday)
@@ -336,7 +434,7 @@ class ContactBookApp:
         edit_name, edit_phone, edit_email, edit_address, edit_birthday, index = data
         new_rec = Record(
             name=edit_name.edit_text,
-            phones=edit_phone.edit_text,
+            phones=(edit_phone.edit_text).strip().split('; '),
             birthday=edit_birthday.edit_text,
             email=edit_email.edit_text,
             address=edit_address.edit_text,
