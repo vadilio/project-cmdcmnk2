@@ -52,6 +52,7 @@ def show_help(available_commands):
         "find_contact": "find_contact <запит> - Знайти контакти за іменем, телефоном, email або адресою",
         "show_contacts": "show_contacts - Показати всі контакти (відсортовані за іменем)",
         "clear_contacts": "clear_contacts - Очистити всю адресну книгу (з підтвердженням)",
+        "save_contacts_csv": "save_contacts_csv - Експортувати контакти в CSV файл",
         "birthdays": "birthdays <кількість_днів> - Показати дні народження в найближчі N днів",
         "add_note": "add_note - Додати нову нотатку (текст і теги запитаються інтерактивно)",
         "find_notes": "find_notes <запит> - Знайти нотатки за текстом або тегом (показує індекси)",
@@ -124,6 +125,7 @@ def main():
             args,
             generate_employees(args, book),
         ),
+        "save_contacts_csv": lambda args: export_contacts_handler(args, book),
         # Нотатки
         "add_note": lambda args: log_action(
             app_logger, "Додавання нотатки", args, add_note(
