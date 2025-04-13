@@ -62,6 +62,7 @@ def find_closest_command(user_command, available_commands):
 def tui_start(args, book: AddressBook):
     app = ContactBookApp(book)
     app.run()
+    return f'З поверненням!'
 
 
 def show_help(available_commands):

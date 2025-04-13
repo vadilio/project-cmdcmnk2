@@ -3,7 +3,48 @@ from address_book.Addressbook import AddressBook
 from address_book.models_book import Record
 import shutil
 import signal
-# urwid.get_terminal_size() из библиотеки urwid.
+import re
+
+
+class SmartEmailEdit(urwid.Edit):
+    def __init__(self, caption="", edit_text=""):
+        super().__init__(caption=caption, edit_text=edit_text)
+        # self.raw_numbers_bd = ""  # Это введенная строка без обработки - DD.MM.YYYY
+        self.raw_email = edit_text
+        self.set_edit_pos(len(edit_text))
+
+    def is_email_valid(self, text):
+        if (len(text) > 0 and re.fullmatch(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}", self.raw_email)) or len(text) == 0:
+            return True
+        else:
+            return False
+
+    def keypress(self, size, key):
+
+        if key in ('up', 'down'):
+            # Разрешаем переход только если последний ДР корректен
+
+            if self.is_email_valid(self.raw_email):
+                self.set_edit_text(self.raw_email)
+                return key  # передаём управление другим виджетам
+            else:
+                return  # # игнорируем все остальные клавиши
+        elif key == 'backspace':
+            if self.raw_email:   # if the field not empty
+                # Delete last digit
+                self.raw_email = self.raw_email[:-1]
+                self.update_text(self.raw_email)
+                return
+        elif len(key) == 1 and self.valid_char(key):
+            self.raw_email += key
+            self.update_text(self.raw_email)
+            return
+
+    def update_text(self, text) -> str:
+        #
+        self.set_edit_text(text)
+        self.set_edit_pos(len(self.text))
+        return text
 
 
 class SmartNameEdit(urwid.Edit):
@@ -187,10 +228,6 @@ class SmartPhoneEdit(urwid.Edit):
 
         self.set_edit_pos(cursor_pos)
 
-    # def get_phone_numbers(self):
-        # Возвращаем только полные номера (с 10 цифрами)
-        # return [num for num in self.raw_numbers if len(num) == 10]
-
 
 class ContactBookApp:
     def __init__(self, book: AddressBook):
@@ -280,9 +317,9 @@ class ContactBookApp:
             selected_contact = self.book.get_record_by_index(
                 self.book.selected_index)
             contact_info = f"Selected: {selected_contact.get_name()}" if selected_contact else "No contact selected"
-        # self.menu.set_text(f"{self.menu_txt} | {contact_info}")
-        self.menu.set_text(
-            f"{self.menu_txt} | {self.column_wdth} | {self.terminal_width} | {self.cols}")
+        self.menu.set_text(f"{self.menu_txt} | {contact_info}")
+        # self.menu.set_text(
+        # f"{self.menu_txt} ")
 
     def create_mc_linebox(self, widget, title=""):
         """задаем параметры виджета-рамки главной таблицы"""
@@ -388,7 +425,7 @@ class ContactBookApp:
         edit_phone = SmartPhoneEdit(
             "Phone: ", record.get_phones() if record else "")
         # urwid.Edit("Phone: ", record.get_phones() if record else "")
-        edit_email = urwid.Edit(
+        edit_email = SmartEmailEdit(
             "E-Mail: ", record.get_email() if record else "")
         edit_address = urwid.Edit(
             "Address: ", record.get_address() if record else "")
