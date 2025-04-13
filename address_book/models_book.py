@@ -104,10 +104,12 @@ class Record:
     def add_phone(self, phone_number):
         """Додає телефон до запису. """
         if isinstance(phone_number, list):  # Якще передаємо списком з TUI
-            self.phones.clear
-            for phone in phone_number:
-                phone = Phone(phone)
-                self.phones.append(phone)
+            if len(phone_number) > 0:
+                if phone_number[0] != '':
+                    self.phones.clear
+                    for phone in phone_number:
+                        phone = Phone(phone)
+                        self.phones.append(phone)
         else:
             phone = Phone(
                 phone_number)  # Валідація відбувається при створенні Phone
@@ -231,13 +233,21 @@ class Record:
         return str('; '.join(p.value for p in self.phones))
 
     def get_name(self) -> str:
+        if self.name.value == None:
+            return ''
         return str(self.name.value)
 
     def get_birthday(self) -> str:
+        if self.birthday == None:
+            return ''
         return str(self.birthday)
 
     def get_email(self) -> str:
+        if self.email == None:
+            return ''
         return str(self.email)
 
     def get_address(self) -> str:
+        if self.address == None:
+            return ''
         return str(self.address)
