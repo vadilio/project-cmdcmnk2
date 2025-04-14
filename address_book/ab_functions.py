@@ -81,7 +81,8 @@ def add_contact(args, book: AddressBook):
             print(f"Помилка адреси: {e}")
 
     # Додавання вибору, чи є контакт улюбленим
-    favourite_input = input(f"Чи є контакт {name} улюбленим? (y/n): ").strip().lower()
+    favourite_input = input(
+        f"Чи є контакт {name} улюбленим? (y/n): ").strip().lower()
     favourite = favourite_input == "y"  # Якщо 'y', то контакт улюблений, інакше - ні
 
     # Створюємо запис з усіма зібраними даними
@@ -146,7 +147,8 @@ def edit_contact(args, book: AddressBook):
         return f"Ім'я контакту змінено з '{name}' на '{new_name}'."
 
     elif choice == "2":
-        new_phone = input("Введіть номер телефону для додавання (10 цифр): ").strip()
+        new_phone = input(
+            "Введіть номер телефону для додавання (10 цифр): ").strip()
         # Валідація та перевірка на дублікат всередині
         record.add_phone(new_phone)
         save_contacts(book)
@@ -156,7 +158,8 @@ def edit_contact(args, book: AddressBook):
         if not record.phones:
             return "У контакта немає телефонів для редагування."
         print("Поточні телефони:", "; ".join(p.value for p in record.phones))
-        old_phone = input("Введіть номер телефону, який хочете змінити: ").strip()
+        old_phone = input(
+            "Введіть номер телефону, який хочете змінити: ").strip()
         new_phone = input("Введіть новий номер телефону (10 цифр): ").strip()
         # Валідація та обробка помилок всередині
         record.edit_phone(old_phone, new_phone)
@@ -167,7 +170,8 @@ def edit_contact(args, book: AddressBook):
         if not record.phones:
             return "У контакта немає телефонів для видалення."
         print("Поточні телефони:", "; ".join(p.value for p in record.phones))
-        phone_to_delete = input("Введіть номер телефону для видалення: ").strip()
+        phone_to_delete = input(
+            "Введіть номер телефону для видалення: ").strip()
         # Обробка помилки ValueError всередині
         record.remove_phone(phone_to_delete)
         save_contacts(book)
@@ -210,10 +214,11 @@ def edit_contact(args, book: AddressBook):
             record.set_address(new_address)  # Валідація (якщо є) в сеттері
             save_contacts(book)
             return f"Адресу для {name} оновлено."
-        
+
     elif choice == '8':
         # Редагуємо статус контакту
-        favourite_input = input(f"Чи хочете ви змінити статус контакту для {name}? (y для 'Улюблений', n для 'Не улюблений'): ").strip().lower()
+        favourite_input = input(
+            f"Чи хочете ви змінити статус контакту для {name}? (y для 'Улюблений', n для 'Не улюблений'): ").strip().lower()
         if favourite_input == 'y':
             record.favourite = True
             save_contacts(book)
@@ -224,7 +229,7 @@ def edit_contact(args, book: AddressBook):
             return f"Статус контакту {name} змінено."
         else:
             return "Невірний вибір статусу."
-    
+
     elif choice == "0":
         return "Редагування скасовано."
     else:
@@ -263,10 +268,10 @@ def show_all_contacts(args, book: AddressBook):
     """Показує всі контакти в адресній книзі."""
     if not book.data:
         return "Адресна книга порожня."
-    output = "--- Всі контакти ---\n" + "=" * 20 + "\n"
+    output = "\n--- Всі контакти ---\n\n" + "=" * 20 + "\n\n"
     # Сортуємо контакти за іменем для зручності
     sorted_records = sorted(book.data.values(), key=lambda r: r.name.value)
-    output += "\n".join(str(record) for record in sorted_records)
+    output += "\n".join(f"{str(record)}\n\n{'-=-' * 7}\n" for record in sorted_records)
     return output
 
 
@@ -286,7 +291,8 @@ def show_upcoming_birthdays(args, book: AddressBook):
     if not upcoming:
         return f"Немає днів народження в найближчі {days} днів."
 
-    output = f"--- Дні народження в найближчі {days} днів ---\n" + "=" * 40 + "\n"
+    output = f"--- Дні народження в найближчі {days} днів ---\n" + \
+        "=" * 40 + "\n"
     # `get_upcoming_birthdays` вже сортує за датою
     output += "\n".join(
         f"{record.name.value}: {record.birthday.value} (залишилось днів: {record.days_to_birthday()})"
@@ -313,16 +319,17 @@ def clear_address_book(args, book: AddressBook):
 def search_by_favourite(book: AddressBook, favourite_status: bool):
     """Пошук всіх контактів за статусом 'favourite'."""
     result = None
-    found_contacts = [record for record in book.data.values() if record.favourite == favourite_status]
+    found_contacts = [record for record in book.data.values(
+    ) if record.favourite == favourite_status]
 
     if not found_contacts:
         return "Не знайдено контактів з таким статусом."
-    
+
     if favourite_status == True:
         result = "--- Улюблені Контакти ---\n"
     else:
         result = "--- Контакти ---\n"
-    
+
     for record in found_contacts:
         result += f"{record}\n"
     return result
