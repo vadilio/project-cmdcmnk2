@@ -282,7 +282,7 @@ class ContactBookApp:
         )
 
         # Свяжем сигнал SIGWINCH (resize терминала) с обработчиком
-        signal.signal(signal.SIGWINCH, self.handle_resize)
+        # signal.signal(signal.SIGWINCH, self.handle_resize)
 
         # Переменная для хранения текущего оверлея
         self.overlay = None
@@ -403,6 +403,10 @@ class ContactBookApp:
             self.walker.set_focus(0)
 
     def handle_input(self, key):
+        if key == 'window resize':
+            size = self.loop.screen.get_cols_rows()
+            self.terminal_width = size[1]
+            self.handle_resize()
         if key in ('q', 'Q'):
             raise urwid.ExitMainLoop()
         elif key in ('down',):
@@ -424,6 +428,7 @@ class ContactBookApp:
         elif key in ('h', 'H'):
             self.show_help()
         self.refresh_list()
+        self.handle_resize()
 
     def create_contact_form(self, record=None):
         """Создает форму для добавления или редактирования контакта."""
