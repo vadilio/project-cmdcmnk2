@@ -233,7 +233,7 @@ class ContactBookApp:
     def __init__(self, book: AddressBook):
         self.book = book
         self.overlay_open = False  # флаг открытого окна overlay
-        self.COLUMN_WEIGHTS = [6, 10, 10, 10, 10]
+        self.COLUMN_WEIGHTS = [12, 20, 20, 20, 14]
         self.column_wdth = []
         self.cols = 0
         self.rows = 0
@@ -289,12 +289,13 @@ class ContactBookApp:
 
     # вычисляем ширину терминала для вычисления допширины колонки
     def handle_resize(self, *args):
-        self.terminal_width = shutil.get_terminal_size().columns
-        # вычисляем допустимые ширины столюцов
+        self.terminal_width = shutil.get_terminal_size().columns-6
+        # вычисляем допустимые ширины столбцов
         self.column_wdth = []
-        koef = (self.terminal_width-2)/sum(self.COLUMN_WEIGHTS)
+        koef = (self.terminal_width)/sum(self.COLUMN_WEIGHTS)
         for weight in self.COLUMN_WEIGHTS:
             self.column_wdth.append(round(weight*koef))
+        self.column_wdth[4] = self.terminal_width - sum(self.column_wdth[:-1])
         if hasattr(self, 'loop') and self.loop is not None:
             self.update_footer()
             self.refresh_list()
@@ -336,12 +337,15 @@ class ContactBookApp:
         # Собираем текст строки с разделителями
         # Создаём Text-виджет, который преобразуем в колонки
         # text_widget = urwid.Columns(
-        #     [(weight, urwid.Text(f"│{col.ljust(weight)}"))
+        #     [(weight, urwid.Text(f"{col.ljust(weight)}"))
         #      for weight, col in zip(self.COLUMN_WEIGHTS, columns)],
         #     dividechars=1
         # )
-        text_widget = urwid.Columns(
-            [urwid.Text(col.ljust(self.COLUMN_WEIGHTS[i])) for i, col in enumerate(columns)], dividechars=1)
+        # text_widget = urwid.Columns(
+        # [urwid.Text(col.ljust(self.COLUMN_WEIGHTS[i])) for i, col in enumerate(columns)], dividechars=1)
+        text_widget = urwid.Columns([('fixed', self.column_wdth[i], urwid.Text(
+            col)) for i, col in enumerate(columns)], dividechars=1)
+
         # Оборачиваем в AttrMap:
         # - если заголовок — используем стиль 'header' "│"+
         # - если нет — используем стиль 'default'
@@ -365,7 +369,7 @@ class ContactBookApp:
             result = []
             for txt, wdth in zip(text_to_cut, wdths):
                 if len(txt) >= wdth:
-                    txt = txt[0:wdth-1]+'…'
+                    txt = txt[0:wdth-2]+'…'
                 result.append(txt)
             return result
 
@@ -389,6 +393,10 @@ class ContactBookApp:
         # Очищаем и обновляем список
         self.walker.clear()
         self.walker.extend(self.build_contact_list())
+        # обновляем заголовок
+        self.header_row = self.create_table_row(self.HEADERS, is_header=True)
+        self.list_area.contents[0] = (self.header_row, ('pack', None))
+
         if 0 <= current_focus < len(self.walker):
             self.walker.set_focus(current_focus)
         else:
@@ -473,7 +481,7 @@ class ContactBookApp:
             boxed,
             self.view,
             align='center', width=(60),
-            valign='middle', height=(30)
+            valign='middle', height=(14)
         )
 
         return overlay, s_button, (edit_name, edit_phone, edit_email, edit_address, edit_birthday)
